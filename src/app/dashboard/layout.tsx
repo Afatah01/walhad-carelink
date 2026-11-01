@@ -4,6 +4,7 @@ import { currentAuth } from "@/lib/auth";
 import { patientsForUser } from "@/lib/db/repo";
 import { ensureSeed } from "@/lib/seed";
 import { DashboardShell } from "@/components/app/DashboardShell";
+import { ensureBooted } from "@/lib/boot";
 import { DashboardProvider } from "@/components/app/DashboardProvider";
 
 export const metadata: Metadata = {
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  await ensureBooted();
   const auth = await currentAuth().catch(() => null);
   if (!auth) redirect("/login");
 

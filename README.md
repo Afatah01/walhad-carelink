@@ -61,14 +61,26 @@ npm run build     # production build
 
 ---
 
-## Deploying to GitHub + Render
+## Deploying to GitHub + Render (free tier)
 
-1. Push the repository to GitHub (`.gitignore` keeps `.env`, databases and build output out of git).
-2. In Render choose **New + → Blueprint** and select the repo — `render.yaml` provisions a web service and a Postgres database.
-3. Fill in the values marked `sync: false`: `APP_BASE_URL` (your `https://…onrender.com` URL), `DEMO_PASSWORD`, and optionally the Telegram / VAPID / Twilio / payment / contact values.
-4. Render runs `npm run db:migrate && npm run db:seed && npm start`; the health check is `GET /api/health`.
+The repository ships a free-tier blueprint — Hobby workspace, no credit card, nothing billed.
 
-Without a database the app falls back to a local SQLite file, which is fine for a preview but not for production. Set `DATABASE_URL` to the Render **Internal Database URL**.
+1. <https://dashboard.render.com/blueprints> → **New Blueprint Instance** → select the repo.
+2. Fill in the values marked `sync: false`: `APP_BASE_URL`, `DEMO_PASSWORD`, and optionally the
+   Telegram / VAPID / Twilio / payment / contact values.
+3. Apply. The app provisions itself on the first request — no migrate or seed step in the start
+   command, because a free Postgres arrives empty and is not reachable during a build.
+4. Add `APP_URL` as a repository secret and enable `.github/workflows/keepalive.yml`, which pings
+   every 5 minutes so the service does not fall asleep between visitors.
+
+**Three free-tier limits shape this design** — read `DEPLOY.md` before relying on it:
+
+- Free web services sleep after 15 minutes and cold-start in about a minute.
+- **Free Postgres is deleted ~44 days after creation**, with all data. Migrate it, use an external
+  provider such as Neon or Supabase, or keep the database on a paid instance.
+- There are no cron jobs, so the app runs its own lazy sync on wake-up (`src/lib/boot.ts`).
+
+Never use the SQLite fallback on Render: the filesystem is wiped on every spin-down.
 
 **Telegram on Render**
 

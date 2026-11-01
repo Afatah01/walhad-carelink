@@ -15,6 +15,13 @@ export function schemaStatements(d: Dialect): string[] {
 
   const raw = [
     /* ------------------------------ platform ------------------------------ */
+    `CREATE TABLE IF NOT EXISTS schema_migrations (
+      id {{PK}},
+      name TEXT NOT NULL UNIQUE,
+      dialect TEXT,
+      applied_at TEXT NOT NULL
+    )`,
+
     `CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT,

@@ -5,6 +5,7 @@ import { I18nProvider } from "@/components/i18n/I18nProvider";
 import { brand } from "@/lib/brand";
 import type { Locale } from "@/lib/i18n";
 import { dirFor, LOCALES } from "@/lib/i18n";
+import { ensureBooted } from "@/lib/boot";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -63,6 +64,9 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Provision + refresh on the first request after a wake-up. Idempotent and
+  // cached per process, so this costs nothing on subsequent renders.
+  await ensureBooted();
   const jar = await cookies();
   const cookieLocale = jar.get("walhad_locale")?.value as Locale | undefined;
   const locale: Locale = LOCALES.some((l) => l.code === cookieLocale) ? (cookieLocale as Locale) : "en";

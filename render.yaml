@@ -1,30 +1,29 @@
-# Render.com blueprint — one web service plus a managed Postgres database.
+# Render.com blueprint — FREE TIER
 #
-#   1. Push this repository to GitHub.
-#   2. In Render: New + → Blueprint → pick the repo.
-#   3. Fill in the secret values marked `sync: false` (Telegram token, VAPID
-#      keys, SMS credentials, payment webhook secret, contact details).
+#   Hobby workspace, no credit card. What that means in practice:
 #
-# The app also runs without Postgres (SQLite file) for a quick preview, but a
-# database is required for anything beyond evaluation.
-
-databases:
-  - name: walhad-carelink-db
-    databaseName: walhad_carelink
-    user: walhad
-    plan: basic-256mb
-    postgresMajorVersion: "16"
+#   • Web service: 512 MB / 0.1 CPU, spins down after 15 min idle, ~1 min cold start
+#   • Postgres: free for 30 days from creation, 1 GB, then deleted after a 14-day
+#     grace period unless upgraded. See "The 30-day database problem" in DEPLOY.md.
+#   • No cron jobs and no background workers on Free, so the app syncs itself on
+#     wake-up instead (src/lib/boot.ts) and a free uptime pinger keeps it warm.
+#
+#   Nothing here is paid. To make it production-grade later, add a `plan:` line to
+#   the service (starter) and the database (basic-256mb) — nothing else changes.
 
 services:
   - type: web
     name: walhad-carelink
     runtime: node
-    plan: starter
+    plan: free
     region: frankfurt
     branch: main
     autoDeploy: true
     buildCommand: npm ci && npm run build
-    startCommand: npm run db:migrate && npm run db:seed && npm start
+    # The app migrates, seeds and refreshes itself on the first request, so the
+    # start command stays a plain `next start` — no build-time database access,
+    # which a free Postgres cannot support during a build.
+    startCommand: npm start
     healthCheckPath: /api/health
     envVars:
       - key: NODE_VERSION
@@ -37,7 +36,10 @@ services:
           property: connectionString
       - key: PGSSL
         value: "true"
-      # Render injects RENDER_EXTERNAL_URL; the app falls back to it for HTTPS links
+      - key: PG_POOL_MAX
+        value: "3"
+      # Render injects RENDER_EXTERNAL_URL; APP_BASE_URL is only needed for deep
+      # links and webhook registration, where the exact host matters.
       - key: APP_BASE_URL
         sync: false
       - key: APP_SECRET
@@ -46,9 +48,10 @@ services:
         value: "true"
       - key: DEMO_PASSWORD
         sync: false
+      # How old demo readings may get before the next request refreshes them.
+      - key: DEMO_REFRESH_MINUTES
+        value: "10"
       - key: TELEGRAM_BOT_TOKEN
-        sync: false
-      - key: TELEGRAM_WEBHOOK_SECRET
         sync: false
       - key: VAPID_PUBLIC_KEY
         sync: false
@@ -74,3 +77,10 @@ services:
         sync: false
       - key: CONTACT_HOURS
         sync: false
+
+databases:
+  - name: walhad-carelink-db
+    databaseName: walhad_carelink
+    user: walhad
+    plan: free
+    postgresMajorVersion: "16"
