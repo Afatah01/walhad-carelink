@@ -55,12 +55,28 @@ You can watch this happen in the Render log:
 
 ## 2. Keep it awake (2 minutes)
 
-Repo → **Settings → Secrets and variables → Actions → New repository secret**
+The ready-made workflow is at **`docs/github-workflows/keepalive.yml`** — it lives there because a
+personal access token without the `workflow` scope cannot create files under `.github/workflows/`.
+Two ways to activate it:
 
-- Name: `APP_URL`
-- Value: `https://<your-service>.onrender.com`
+**In the browser (no token scope needed)**
 
-Then **Actions → Keep-alive → Enable workflow**.
+1. GitHub → **Add file → Create new file**
+2. Name it `.github/workflows/keepalive.yml`
+3. Paste the contents of `docs/github-workflows/keepalive.yml`, set `DEFAULT_URL` to your Render
+   URL (or add a repository secret `APP_URL` instead), and commit
+4. **Actions** tab → *Keep-alive* → **Enable workflow**
+
+**From a terminal, with a token that has the `workflow` scope**
+
+```bash
+mkdir -p .github/workflows
+cp docs/github-workflows/keepalive.yml .github/workflows/
+git add .github && git commit -m "ci: keep-alive pinger" && git push
+```
+
+`docs/github-workflows/ci.yml` is activated the same way if you want typecheck + tests + build on
+every push.
 
 Every 5 minutes it calls `GET /api/keepalive` (returns `204`, touches the database, triggers the
 lazy sync) and prints `GET /api/health` so failures are visible. This also stops the 60-second cold
@@ -144,7 +160,8 @@ npm test            # 16 unit tests
 npm run build       # production build
 ```
 
-`.github/workflows/ci.yml` runs all three on every push and pull request, free on public repos.
+`docs/github-workflows/ci.yml` (once activated) runs all three on every push and pull request, free
+on public repos.
 
 ## Endpoints worth knowing
 
