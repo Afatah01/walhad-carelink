@@ -16,7 +16,8 @@
     "db:seed": "tsx scripts/seed.mts",
     "sync:demo": "tsx scripts/sync-demo.mts",
     "telegram:set-webhook": "tsx scripts/telegram-set-webhook.mts",
-    "test": "node --test --import tsx tests/*.test.ts"
+    "test": "node --test --import tsx tests/*.test.ts",
+    "render:provision": "node scripts/provision-render.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
