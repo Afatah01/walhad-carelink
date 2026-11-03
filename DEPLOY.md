@@ -174,3 +174,26 @@ on public repos.
 | `GET /api/cron/sync` | Full scheduled sync (`Bearer $CRON_SECRET`) — for when you are on a paid plan with real cron |
 | `POST /api/telegram/webhook` | Telegram updates, secret-header verified |
 | `POST /api/billing/webhook` | Payment confirmations, secret-header verified |
+
+## Accounts on this deployment
+
+| Login | Password | Role |
+| --- | --- | --- |
+| `admin@walhadhealth.so` | set in `BOOTSTRAP_ADMIN_PASSWORD` | Administrator |
+
+`CREATE_DEMO_ACCOUNTS=true` also creates the three labelled evaluation logins
+(`aisha@` / `doctor@` / `admin@walhadcarelink.demo`, password `DEMO_PASSWORD`).
+They are **accounts only** — they own no patient records and there are no
+readings, alerts or telegrams anywhere in the database. The dashboard for every
+one of them opens on the honest empty state.
+
+## Why the database is empty
+
+Glucose data can only enter through a connected source. To see the platform
+work: sign in as the administrator → **Patients** tab → create a record →
+**Connect source** → choose *Secure phone bridge* (or LibreView once Abbott
+credentials are issued) → the record starts receiving real readings.
+
+The simulator (`DEMO_PROVIDER_ENABLED`) is off. Turning it on is the only way to
+get synthetic readings, and every screen that shows them labels them as
+evaluation data.
