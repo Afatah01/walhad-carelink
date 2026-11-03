@@ -127,12 +127,12 @@ export function LoginForm({ accounts, showDemo }: { accounts: DemoAccount[]; sho
         {showDemo && accounts.length ? (
           <div className="card-lg border border-line bg-white p-6 shadow-soft">
             <div className="flex items-center justify-between">
-              <h2 className="text-[0.95rem] font-extrabold text-navy-900">Demo workspace</h2>
-              <span className="pill pill-teal">Sample data</span>
+              <h2 className="text-[0.95rem] font-extrabold text-navy-900">Evaluation accounts</h2>
+              <span className="pill pill-teal">No patient data</span>
             </div>
             <p className="mt-1.5 text-[0.8rem] leading-relaxed text-muted">
-              Pick a role to explore the platform. Every account uses simulated sensor data and clearly labelled
-              demo records.
+              Pick a role to walk through the interface. These accounts own no patient records and contain no
+              readings — every dashboard opens empty until a real glucose source is connected.
             </p>
             <div className="mt-4 space-y-2">
               {accounts.map((acc) => (
