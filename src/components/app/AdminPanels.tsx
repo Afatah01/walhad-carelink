@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { IconCheck, IconInfo, IconRefresh, IconShield, IconTelegram, IconUsers } from "@/components/ui/Icons";
 import { stampTime } from "@/lib/glucose";
 
@@ -21,7 +21,7 @@ type Contact = { id: number; name: string; email: string; topic: string; message
 type Audit = { id: number; action: string; actor: string; entity: string; at: string };
 type Integration = { id: number; provider: string; event: string; status: string; message: string | null; at: string };
 
-const TABS = ["Plans", "Subscriptions", "Organisations", "Staff", "Enquiries", "Audit", "Integrations"] as const;
+const TABS = ["Patients", "Plans", "Subscriptions", "Organisations", "Staff", "Enquiries", "Audit", "Integrations"] as const;
 
 export function AdminPanels(props: {
   hasBot: boolean;
@@ -33,7 +33,7 @@ export function AdminPanels(props: {
   audit: Audit[];
   integrations: Integration[];
 }) {
-  const [tab, setTab] = useState<(typeof TABS)[number]>("Plans");
+  const [tab, setTab] = useState<(typeof TABS)[number]>("Patients");
   const [toast, setToast] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -53,7 +53,7 @@ export function AdminPanels(props: {
   return (
     <div className="mt-6">
       {toast ? (
-        <div className="fixed bottom-5 left-1/2 z-50 max-w-[92vw] -translate-x-1/2 rounded-xl bg-navy-900 px-4 py-2.5 text-[0.8rem] font-semibold text-white shadow-xl">
+        <div className="pointer-events-none fixed bottom-5 left-1/2 z-50 max-w-[92vw] -translate-x-1/2 rounded-xl bg-navy-900 px-4 py-2.5 text-[0.8rem] font-semibold text-white shadow-xl">
           {toast}
         </div>
       ) : null}
@@ -73,6 +73,10 @@ export function AdminPanels(props: {
       </div>
 
       <div className="mt-4 space-y-4">
+        {tab === "Patients" ? (
+          <PatientsPanel notify={notify} />
+        ) : null}
+
         {tab === "Plans" ? (
           <>
             <section className="card overflow-hidden">
@@ -338,5 +342,192 @@ export function AdminPanels(props: {
         </p>
       </div>
     </div>
+  );
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Patient records — the only way data enters the platform.            */
+/* ------------------------------------------------------------------ */
+
+type PatientRowDto = {
+  id: number;
+  displayName: string;
+  provider: string;
+  connectedAt: string | null;
+  createdAt: string;
+  readings: number;
+};
+
+function PatientsPanel({ notify }: { notify: (m: string) => void }) {
+  const [rows, setRows] = useState<PatientRowDto[] | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [created, setCreated] = useState<{ name: string; id: number } | null>(null);
+  const [form, setForm] = useState({
+    displayName: "",
+    dateOfBirth: "",
+    timezone: "Africa/Mogadishu",
+    unit: "mg/dL" as "mg/dL" | "mmol/L",
+    targetLow: "70",
+    targetHigh: "180",
+    patientEmail: "",
+  });
+
+  const load = useCallback(async () => {
+    const res = await fetch("/api/patients", { cache: "no-store" });
+    const json = await res.json();
+    if (json.ok) setRows(json.patients);
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    const res = await fetch("/api/patients", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(form),
+    });
+    const json = await res.json();
+    setBusy(false);
+    if (!json.ok) {
+      notify(json.error ?? "Could not create the record.");
+      return;
+    }
+    notify(`Created ${json.patient.displayName}. No readings yet — connect a source to start.`);
+    setCreated({ name: json.patient.displayName, id: json.patient.id });
+    setForm({ ...form, displayName: "", dateOfBirth: "", patientEmail: "" });
+    void load();
+  }
+
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+    setForm({ ...form, [k]: e.target.value });
+
+  return (
+    <>
+      <section className="card overflow-hidden">
+        <div className="border-b border-line px-4 py-3">
+          <h2 className="text-[0.92rem] font-extrabold text-navy-900">Patient records</h2>
+          <p className="mt-0.5 text-[0.72rem] font-semibold text-muted">
+            A new record holds no data. Readings appear only after a Libre source is connected.
+          </p>
+        </div>
+        {rows === null ? (
+          <div className="space-y-2 p-4">
+            <div className="skeleton h-4 w-1/3 rounded" />
+            <div className="skeleton h-4 w-1/2 rounded" />
+          </div>
+        ) : rows.length === 0 ? (
+          <p className="px-4 py-6 text-center text-[0.84rem] font-semibold text-muted">
+            No patients yet. Create the first record below.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="tbl min-w-[640px]">
+              <thead>
+                <tr>
+                  <th>Patient</th>
+                  <th>Source</th>
+                  <th>Readings</th>
+                  <th>Created</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r) => (
+                  <tr key={r.id}>
+                    <td className="text-[0.84rem] font-bold text-navy-900">{r.displayName}</td>
+                    <td>
+                      {r.connectedAt ? (
+                        <span className="pill pill-ok text-[0.56rem]">{r.provider} connected</span>
+                      ) : (
+                        <span className="pill pill-muted text-[0.56rem]">not connected</span>
+                      )}
+                    </td>
+                    <td className="tabular text-[0.8rem] text-muted">{r.readings}</td>
+                    <td className="text-[0.76rem] text-muted">{r.createdAt ? stampTime(Date.parse(r.createdAt)) : "—"}</td>
+                    <td className="text-right">
+                      <a
+                        href={`/dashboard/connection?patientId=${r.id}`}
+                        className="text-[0.76rem] font-bold text-brand-700 hover:underline"
+                      >
+                        Connect source
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <form onSubmit={submit} className="card overflow-hidden">
+        <div className="border-b border-line px-4 py-3">
+          <h2 className="text-[0.92rem] font-extrabold text-navy-900">Create a patient record</h2>
+        </div>
+        <div className="grid gap-3 p-4 sm:grid-cols-2">
+          <Field label="Full name">
+            <input required value={form.displayName} onChange={set("displayName")} className="input" placeholder="Patient name" />
+          </Field>
+          <Field label="Date of birth (optional)">
+            <input type="date" value={form.dateOfBirth} onChange={set("dateOfBirth")} className="input" />
+          </Field>
+          <Field label="Time zone">
+            <select value={form.timezone} onChange={set("timezone")} className="input">
+              {["Africa/Mogadishu", "Africa/Nairobi", "Africa/Addis_Ababa", "Africa/Djibouti", "Europe/London", "Europe/Istanbul", "Asia/Dubai"].map((z) => (
+                <option key={z} value={z}>{z}</option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Display unit">
+            <select value={form.unit} onChange={set("unit")} className="input">
+              <option value="mg/dL">mg/dL</option>
+              <option value="mmol/L">mmol/L</option>
+            </select>
+          </Field>
+          <Field label="Target low">
+            <input type="number" value={form.targetLow} onChange={set("targetLow")} className="input" min={40} max={120} />
+          </Field>
+          <Field label="Target high">
+            <input type="number" value={form.targetHigh} onChange={set("targetHigh")} className="input" min={100} max={300} />
+          </Field>
+          <Field label="Patient login email (optional)" hint="Leave blank for a clinic-managed record with no app login.">
+            <input type="email" value={form.patientEmail} onChange={set("patientEmail")} className="input" placeholder="patient@example.com" />
+          </Field>
+          <div className="flex items-end">
+            <button type="submit" disabled={busy} className="btn btn-primary w-full">
+              {busy ? "Creating…" : "Create record"}
+            </button>
+          </div>
+        </div>
+        {created ? (
+          <div className="border-t border-line bg-[#f4faff] px-4 py-3">
+            <p className="text-[0.78rem] font-semibold text-navy-800">
+              {created.name} created with zero readings.
+            </p>
+            <a
+              href={`/dashboard/connection?patientId=${created.id}`}
+              className="mt-2 inline-flex text-[0.78rem] font-bold text-brand-700 hover:underline"
+            >
+              Connect a glucose source
+            </a>
+          </div>
+        ) : null}
+      </form>
+    </>
+  );
+}
+
+function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-[0.68rem] font-bold uppercase tracking-[0.1em] text-muted">{label}</span>
+      {children}
+      {hint ? <span className="mt-1 block text-[0.68rem] text-muted">{hint}</span> : null}
+    </label>
   );
 }

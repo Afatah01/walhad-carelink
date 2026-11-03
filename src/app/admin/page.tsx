@@ -7,6 +7,7 @@ import { listClinicians, listContactRequests, listOrgs, recentAudit, recentInteg
 import { listPlans } from "@/lib/billing/plans";
 import { botToken } from "@/lib/notify/telegram";
 import { AdminPanels } from "@/components/app/AdminPanels";
+import { SignOutButton } from "@/components/app/SignOutButton";
 import { BrandLockup } from "@/components/Brand";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +16,7 @@ export const metadata = { title: "Admin console", robots: { index: false } };
 export default async function AdminPage() {
   const user = await currentUser();
   if (!user) redirect("/login?next=/admin");
-  if (user.role !== "admin") redirect(canManageOrg(user.role) ? "/hospital" : "/dashboard");
+  if (user.role !== "admin") redirect("/dashboard");
 
   const [orgs, plans, users, contacts, audit, integrations, clinicians] = await Promise.all([
     listOrgs(),
@@ -56,15 +57,10 @@ export default async function AdminPage() {
             <span className="text-[0.9rem] font-extrabold text-navy-900">{user.name}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Link href="/hospital" className="btn btn-sm btn-ghost">
-              Hospital view
-            </Link>
             <Link href="/dashboard" className="btn btn-sm btn-ghost">
               Family view
             </Link>
-            <Link href="/api/auth/logout" className="btn btn-sm btn-ghost">
-              Sign out
-            </Link>
+            <SignOutButton />
           </div>
         </div>
       </header>

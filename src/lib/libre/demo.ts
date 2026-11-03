@@ -119,7 +119,9 @@ export const demoProvider: LibreProvider = {
   description:
     "A realistic simulated FreeStyle Libre trace used for evaluation, training and previews. No real patient data.",
   requiresCredentials: false,
-  enabled: () => true,
+  // Off unless a deployment explicitly opts in. Evaluation data must never
+  // appear by accident on a system that is meant to hold real patients.
+  enabled: () => (process.env.DEMO_PROVIDER_ENABLED ?? "false").toLowerCase() === "true",
   async fetchSnapshot(ctx): Promise<ProviderSnapshot> {
     const hours = ctx.lookbackHours ?? 24 * 14;
     if (!Number.isFinite(ctx.patient.id)) {

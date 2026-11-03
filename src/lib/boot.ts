@@ -1,11 +1,7 @@
 import { migrate } from "./db/migrate";
 import { ensureSeed } from "./seed";
-import { getSetting, setSetting } from "./db/repo";
+import { getSetting } from "./db/repo";
 import { db } from "./db/client";
-import { syncablePatients, syncPatient } from "./libre";
-import { open } from "./crypto";
-import { evaluatePatient } from "./alerts/engine";
-import type { PatientRow } from "./db/repo";
 
 /**
  * Boot routine for a serverless-ish host.
@@ -20,28 +16,17 @@ import type { PatientRow } from "./db/repo";
  * and from the high-traffic API routes. It:
  *
  *   1. creates the schema if it does not exist (a fresh free Postgres is empty)
- *   2. seeds the demo workspace when SEED_DEMO is on and nothing is seeded yet
- *   3. refreshes demo readings when stored data is older than STALE_MINUTES
+ *   2. seeds the plan catalogue and, if configured, the first administrator
  *
- * All three steps are idempotent, cheap after the first call, and guarded so a
+ * Both steps are idempotent, cheap after the first call, and guarded so a
  * concurrent burst of requests only ever runs one of them.
+ *
+ * It does **not** create patients or readings. Glucose data enters the platform
+ * only through a connected Libre provider.
  */
-
-const DEFAULT_STALE_MINUTES = 10;
-const BOOT_KEY = "boot_completed_at";
 
 let booted = false;
 let booting: Promise<void> | null = null;
-let lastRefresh = 0;
-
-function staleMinutes(): number {
-  const raw = Number(process.env.DEMO_REFRESH_MINUTES);
-  return Number.isFinite(raw) && raw > 0 ? raw : DEFAULT_STALE_MINUTES;
-}
-
-function demoEnabled(): boolean {
-  return (process.env.SEED_DEMO ?? "true").toLowerCase() !== "false";
-}
 
 /** Failure here must never take down a request — log and continue. */
 async function safe(label: string, fn: () => Promise<void>): Promise<void> {
@@ -52,71 +37,24 @@ async function safe(label: string, fn: () => Promise<void>): Promise<void> {
   }
 }
 
-async function seedIfEmpty(): Promise<void> {
-  if (!demoEnabled()) return;
+async function seedOnce(): Promise<void> {
   const already = await getSetting("seed_version");
-  if (already) return;
+  if (already === "3") return;
   const result = await ensureSeed();
-  await setSetting(BOOT_KEY, new Date().toISOString());
-  console.log(`[boot] demo workspace seeded (${result.created ? "created" : "already present"})`);
-}
-
-/**
- * Advance the simulated sensor.
- *
- * The demo provider derives its trace from the current clock, so a database
- * seeded yesterday shows yesterday's numbers. On wake we re-pull the last few
- * hours for every demo patient — that both fills the gap left by the spin-down
- * and refreshes the "current" reading so the dashboard shows `live` rather than
- * `stale`. Real providers (libreview / linkup / bridge) are skipped: for those
- * the normal sync path applies and a wake-up must not fabricate data.
- */
-async function refreshDemoData(): Promise<void> {
-  if (!demoEnabled()) return;
-  const now = Date.now();
-  const throttle = staleMinutes() * 60_000;
-  if (now - lastRefresh < throttle) return;
-
-  const patients = await syncablePatients();
-  const demoPatients = patients.filter((p: PatientRow) => (p.provider ?? "demo") === "demo");
-  if (!demoPatients.length) return;
-
-  const newest = await db().get<{ last: string | null }>(
-    "SELECT MAX(taken_at) AS last FROM glucose_readings",
-  );
-  const newestMs = newest?.last ? new Date(newest.last).getTime() : 0;
-  const ageMinutes = (now - newestMs) / 60_000;
-  if (newestMs && ageMinutes < staleMinutes()) {
-    lastRefresh = now;
-    return;
+  if (result.accounts.length) {
+    console.log(`[boot] provisioned ${result.accounts.length} account(s); plans ready`);
+  } else {
+    console.log("[boot] plans ready — no accounts created (set BOOTSTRAP_ADMIN_EMAIL to create one)");
   }
-
-  let ingested = 0;
-  for (const patient of demoPatients) {
-    const outcome = await syncPatient(patient, open(patient.credential_cipher), 6);
-    if (outcome.ok) {
-      ingested += outcome.ingested;
-      await safe("evaluate", async () => {
-        await evaluatePatient(patient);
-      });
-    }
-  }
-  lastRefresh = now;
-  console.log(`[boot] refreshed ${ingested} demo readings across ${demoPatients.length} patients`);
 }
 
 export async function ensureBooted(): Promise<void> {
-  if (booted) {
-    // Still cheap to check on a long-lived process.
-    void safe("refresh", refreshDemoData);
-    return;
-  }
+  if (booted) return;
   if (booting) return booting;
 
   booting = (async () => {
     await safe("migrate", migrate);
-    await safe("seed", seedIfEmpty);
-    await safe("refresh", refreshDemoData);
+    await safe("seed", seedOnce);
     booted = true;
   })();
 
@@ -127,21 +65,29 @@ export async function ensureBooted(): Promise<void> {
   }
 }
 
-/** Exposed for the health endpoint: proves the schema and (optionally) the demo data are present. */
+/** Exposed for the health endpoint: proves the schema exists and reports data state. */
 export async function bootStatus(): Promise<{
   migrated: boolean;
   seeded: boolean;
-  demoEnabled: boolean;
+  patients: number;
+  connectedPatients: number;
   latestReading: string | null;
 }> {
   const seeded = Boolean(await getSetting("seed_version"));
-  const row = await db().get<{ last: string | null }>("SELECT MAX(taken_at) AS last FROM glucose_readings").catch(() => ({
-    last: null,
-  }));
+  const patients = await db()
+    .get<{ c: number }>("SELECT COUNT(*) AS c FROM patients")
+    .catch(() => ({ c: 0 }));
+  const connected = await db()
+    .get<{ c: number }>("SELECT COUNT(*) AS c FROM patients WHERE provider <> 'demo'")
+    .catch(() => ({ c: 0 }));
+  const row = await db()
+    .get<{ last: string | null }>("SELECT MAX(taken_at) AS last FROM glucose_readings")
+    .catch(() => ({ last: null }));
   return {
     migrated: booted,
     seeded,
-    demoEnabled: demoEnabled(),
+    patients: Number(patients?.c ?? 0),
+    connectedPatients: Number(connected?.c ?? 0),
     latestReading: row?.last ?? null,
   };
 }

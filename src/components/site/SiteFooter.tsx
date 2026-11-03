@@ -17,7 +17,6 @@ export function SiteFooter({ contact }: { contact?: { email?: string | null; pho
         { label: t("nav.how"), href: "/how-it-works" },
         { label: t("nav.products"), href: "/products" },
         { label: t("nav.pricing"), href: "/pricing" },
-        { label: t("nav.hospital"), href: "/hospital-solutions" },
       ],
     },
     {

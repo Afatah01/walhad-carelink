@@ -32,8 +32,10 @@ place for it. That is a clinical-safety statement, not a hosting preference.
 | Variable | Value |
 | --- | --- |
 | `APP_BASE_URL` | `https://<your-service>.onrender.com` (check the real subdomain after the first deploy) |
-| `DEMO_PASSWORD` | a password you choose for the demo logins |
-| `SEED_DEMO` | `true` for a demo, `false` for real use |
+| `BOOTSTRAP_ADMIN_EMAIL` | The administrator login you will use |
+| `BOOTSTRAP_ADMIN_PASSWORD` | A strong password for that account |
+| `DEMO_PASSWORD` | Optional — password for the labelled evaluation logins |
+| `CREATE_DEMO_ACCOUNTS` | `true` creates three evaluation logins. They have **no** patient records |
 | `CONTACT_*` | your real contact details — blank means "not shown", never invented |
 
 4. **Apply.** The build takes ~4–6 minutes.
@@ -43,7 +45,7 @@ build needs, and more importantly it arrives *empty*. The app provisions itself 
 request:
 
 ```
-first request → migrate() → seed (if SEED_DEMO) → refresh demo data → render page
+first request → migrate() → seed plans → create the bootstrap admin → render page
 ```
 
 You can watch this happen in the Render log:

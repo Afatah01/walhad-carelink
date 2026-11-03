@@ -49,7 +49,12 @@ export function DashboardView() {
   const [toast, setToast] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    if (!activeId) return;
+    if (!activeId) {
+      // No patient on this account yet — stop the spinner and let the empty
+      // state render instead of a skeleton that never resolves.
+      setLoading(false);
+      return;
+    }
     try {
       const res = await fetch(`/api/dashboard?patientId=${activeId}`, { cache: "no-store" });
       const json = await res.json();
@@ -108,6 +113,39 @@ export function DashboardView() {
     await load();
   }
 
+  if (!activeId && !loading) {
+    return (
+      <div className="mx-auto max-w-xl">
+        <div className="card overflow-hidden">
+          <div className="h-1 w-full bg-gradient-to-r from-brand-500 to-teal-500" />
+          <div className="p-7 text-center">
+            <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-brand-50 text-brand-600">
+              <IconSensor size={26} />
+            </span>
+            <h1 className="mt-4 text-[1.35rem] font-extrabold tracking-tight text-navy-900">
+              No patient record yet
+            </h1>
+            <p className="mx-auto mt-2 max-w-md text-[0.88rem] leading-relaxed text-muted">
+              This workspace is empty by design. Create a patient record, then connect an authorised
+              FreeStyle Libre source — readings and alerts appear the moment real data arrives.
+            </p>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+              <Link href="/admin" className="btn btn-primary">
+                Create a patient record <IconArrow size={15} />
+              </Link>
+              <Link href="/dashboard/connection" className="btn btn-ghost">
+                Connection settings
+              </Link>
+            </div>
+            <p className="mt-5 text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-muted">
+              Nothing on this platform is simulated
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (loading && !data) {
     return <DashboardSkeleton />;
   }
@@ -128,8 +166,13 @@ export function DashboardView() {
 
   const unit = globalUnit;
   const showMmol = unit === "mmol/L";
+  // A zero here means "no readings" (or a 0% share), never a real 0 mg/dL.
   const convertValue = (v: number | null | undefined) =>
-    v === null || v === undefined ? null : showMmol ? Math.round((v / 18.0182) * 10) / 10 : Math.round(v);
+    v === null || v === undefined || Number.isNaN(Number(v)) || Number(v) <= 0
+      ? null
+      : showMmol
+        ? Math.round((v / 18.0182) * 10) / 10
+        : Math.round(v);
 
   const latest = data.latest;
   const openAlerts = data.alerts.open;
@@ -163,14 +206,35 @@ export function DashboardView() {
         </div>
       ) : null}
 
-      {/* demo banner */}
+      {/* no source connected — the honest empty state */}
+      {!data.latest && meta?.demoData !== true ? (
+        <div className="overflow-hidden rounded-2xl border border-line bg-white">
+          <div className="h-1 w-full bg-gradient-to-r from-brand-500 to-teal-500" />
+          <div className="flex flex-wrap items-center gap-4 p-4">
+            <span className="grid h-11 w-11 flex-none place-items-center rounded-2xl bg-brand-50 text-brand-600">
+              <IconInfo size={20} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[0.92rem] font-extrabold text-navy-900">No glucose source connected yet</p>
+              <p className="mt-0.5 text-[0.78rem] leading-relaxed text-muted">
+                Readings, alerts and reports stay empty until this record is linked to an authorised FreeStyle
+                Libre source. Nothing is simulated.
+              </p>
+            </div>
+            <Link href="/dashboard/connection" className="btn btn-sm btn-primary">
+              Connect a source <IconArrow size={14} />
+            </Link>
+          </div>
+        </div>
+      ) : null}
+
       {meta?.demoData ? (
-        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[#d9e8f5] bg-[#f4faff] px-3.5 py-2">
-          <IconInfo size={14} className="text-brand-600" />
-          <p className="text-[0.76rem] font-semibold text-navy-800">
-            Demo sensor stream — readings are simulated for evaluation. No real patient data is used.
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[#f0d3ac] bg-high-soft/50 px-3.5 py-2">
+          <IconInfo size={14} className="text-high" />
+          <p className="text-[0.76rem] font-semibold text-[#8a5a11]">
+            Evaluation data — this record is using the simulator, not a real sensor.
           </p>
-          <Link href="/dashboard/settings" className="ml-auto text-[0.74rem] font-bold text-brand-700 hover:underline">
+          <Link href="/dashboard/connection" className="ml-auto text-[0.74rem] font-bold text-brand-700 hover:underline">
             Connection settings
           </Link>
         </div>
@@ -227,9 +291,15 @@ export function DashboardView() {
                         data.sync.connected ? "dot-live" : data.sync.failures > 0 ? "dot-critical" : "dot-warn"
                       }`}
                     />
-                    {data.sync.connected ? "Syncing normally" : "Connection issue"}
+                    {data.sync.connected
+                      ? "Syncing normally"
+                      : !data.sync.configured
+                        ? "No source connected"
+                        : data.sync.failures > 0
+                          ? "Sync failing — retrying"
+                          : "Waiting for first sync"}
                   </span>
-                  · <span>{data.patient.providerLabel}</span>
+                  {data.sync.configured ? <>· <span>{data.patient.providerLabel}</span></> : null}
                 </p>
               </div>
             </div>
@@ -342,13 +412,23 @@ export function DashboardView() {
           </div>
 
           <div className="relative mt-3 grid grid-cols-3 gap-2 border-t border-line pt-3">
-            <FooterStat label="Today's average" value={`${convertValue(data.stats.today.avg) ?? "—"}`} unit={unit} />
+            <FooterStat
+              label="Today's average"
+              value={`${convertValue(data.stats.today.avg) ?? "—"}`}
+              unit={convertValue(data.stats.today.avg) ? unit : undefined}
+              hint={data.stats.today.count === 0 ? "no readings today" : undefined}
+            />
             <FooterStat
               label="Time in range (90d)"
-              value={`${data.stats.ninety.tir}%`}
-              tone={data.stats.ninety.tir >= 70 ? "ok" : "warn"}
+              value={data.stats.ninety.count > 0 ? `${data.stats.ninety.tir}%` : "—"}
+              tone={data.stats.ninety.count > 0 ? (data.stats.ninety.tir >= 70 ? "ok" : "warn") : undefined}
+              hint={data.stats.ninety.count === 0 ? "needs readings" : undefined}
             />
-            <FooterStat label="Est. GMI (90d)" value={`${data.stats.ninety.gmi}%`} hint="not a lab HbA1c" />
+            <FooterStat
+              label="Est. GMI (90d)"
+              value={data.stats.ninety.count > 0 ? `${data.stats.ninety.gmi}%` : "—"}
+              hint={data.stats.ninety.count === 0 ? "needs readings" : "not a lab HbA1c"}
+            />
           </div>
         </section>
 
@@ -540,7 +620,9 @@ export function DashboardView() {
                   <span className="tabular text-[0.92rem] font-extrabold text-navy-900">
                     {convertValue(Number(avg)) ?? "—"}
                   </span>
-                  <span className="ml-1 text-[0.66rem] font-semibold text-muted">{unit}</span>
+                  {Number(count) > 0 ? (
+                    <span className="ml-1 text-[0.66rem] font-semibold text-muted">{unit}</span>
+                  ) : null}
                   <span className="ml-2 text-[0.64rem] text-muted">({count})</span>
                 </dd>
               </div>
@@ -553,7 +635,15 @@ export function DashboardView() {
           <p className="text-[0.68rem] font-semibold text-muted">Computed from stored readings only</p>
           <dl className="mt-3 space-y-2">
             {[
-              ["Variability (CV)", `${data.stats.ninety.cv}%`, data.stats.ninety.cv <= 36 ? "Target ≤ 36%" : "Above target"],
+              [
+                "Variability (CV)",
+                data.stats.ninety.count > 0 ? `${data.stats.ninety.cv}%` : "—",
+                data.stats.ninety.count === 0
+                  ? "needs readings"
+                  : data.stats.ninety.cv <= 36
+                    ? "Target ≤ 36%"
+                    : "Above target",
+              ],
               ["Low events (90d)", `${data.stats.ninety.lows}`, "readings below low"],
               ["High events (90d)", `${data.stats.ninety.highs}`, "readings above high"],
               ["Readings stored", `${data.stats.readings}`, "total in your account"],

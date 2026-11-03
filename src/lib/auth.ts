@@ -96,7 +96,9 @@ export async function signOut(token: string | undefined): Promise<void> {
 }
 
 export function roleHome(role: Role): string {
-  if (role === "doctor" || role === "nurse" || role === "admin") return "/hospital";
+  if (role === "admin") return "/admin";
+  // Clinicians get the same patient dashboard, scoped to the patients assigned
+  // to them. There is no separate hospital console.
   return "/dashboard";
 }
 

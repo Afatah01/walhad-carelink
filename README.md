@@ -140,7 +140,9 @@ See `.env.example` for the full annotated list. The essentials:
 | `APP_BASE_URL` | Public HTTPS URL (webhooks, deep links) |
 | `APP_SECRET` | Session signing + credential encryption |
 | `DATABASE_URL` | Postgres connection string (empty → SQLite) |
-| `SEED_DEMO` / `DEMO_PASSWORD` | Demo workspace and its password |
+| `BOOTSTRAP_ADMIN_EMAIL` / `_PASSWORD` | The first administrator, created on first boot |
+| `CREATE_DEMO_ACCOUNTS` / `DEMO_PASSWORD` | Optional labelled evaluation logins — no patient data |
+| `DEMO_PROVIDER_ENABLED` | The simulator, off by default; output is always labelled |
 | `TELEGRAM_BOT_TOKEN` | Bot API token (server only) |
 | `VAPID_*` | Web push keys |
 | `TWILIO_*` or `SMS_HTTP_*` | SMS delivery |

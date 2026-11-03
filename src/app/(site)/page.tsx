@@ -201,8 +201,8 @@ export default async function HomePage() {
               clinical reports. Staff permissions keep patient data inside the care team.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/hospital-solutions" className="btn btn-primary">
-                Explore hospital solutions <IconArrow size={16} />
+              <Link href="/contact?topic=hospital" className="btn btn-primary">
+                Talk to our team <IconArrow size={16} />
               </Link>
               <Link href="/contact?topic=hospital" className="btn btn-ghost">
                 Talk to sales

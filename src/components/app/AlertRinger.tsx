@@ -160,8 +160,8 @@ export function AlertRinger() {
     <>
       {/* sound gate */}
       {needsGesture && soundOn ? (
-        <div className="fixed bottom-4 left-1/2 z-[70] w-[min(92vw,420px)] -translate-x-1/2">
-          <div className="flex items-center gap-3 rounded-2xl border border-line bg-white px-4 py-3 shadow-lg">
+        <div className="pointer-events-none fixed inset-x-3 bottom-3 z-[70] md:inset-x-auto md:right-4 md:w-[380px]">
+          <div className="pointer-events-auto flex items-center gap-3 rounded-2xl border border-line bg-white px-4 py-3 shadow-lg">
             <span className="grid h-9 w-9 flex-none place-items-center rounded-xl bg-high-soft text-high">
               <IconBell size={17} />
             </span>
@@ -184,9 +184,9 @@ export function AlertRinger() {
 
       {/* critical alert card */}
       {visible && alert ? (
-        <div className="fixed inset-x-3 bottom-3 z-[75] mx-auto max-w-xl md:inset-x-auto md:bottom-4 md:right-4 md:mx-0 md:w-[420px]">
+        <div className="pointer-events-none fixed inset-x-3 bottom-3 z-[75] flex justify-end md:inset-x-auto md:right-4 md:bottom-4 md:w-[400px]">
           <div
-            className={`overflow-hidden rounded-2xl border bg-white shadow-[0_24px_60px_-24px_rgba(12,36,64,0.45)] ${
+            className={`pointer-events-auto w-full overflow-hidden rounded-2xl border bg-white shadow-[0_24px_60px_-24px_rgba(12,36,64,0.45)] ${
               alert.level === "critical" ? "border-[#f3c4c1]" : "border-line"
             }`}
             role="alert"

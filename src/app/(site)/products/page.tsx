@@ -102,7 +102,7 @@ export default function ProductsPage() {
         body="Families start with monitoring and alerts. Clinics and hospitals extend the same foundation across teams."
         actions={[
           { label: "View pricing plans", href: "/pricing" },
-          { label: "Hospital solutions", href: "/hospital-solutions", variant: "ghost" },
+          { label: "Talk to our team", href: "/contact", variant: "ghost" },
         ]}
       />
 
@@ -209,7 +209,7 @@ export default function ProductsPage() {
           {[
             { icon: IconUsers, title: "For families", body: "Peace of mind without hovering over an app all day.", href: "/pricing" },
             { icon: IconMonitor, title: "For caregivers", body: "One place for readings, alerts and acknowledgements.", href: "/features" },
-            { icon: IconHospital, title: "For hospitals", body: "Ward-level visibility with staff permissions.", href: "/hospital-solutions" },
+            { icon: IconHospital, title: "For hospitals", body: "Ward-level visibility with staff permissions.", href: "/contact?topic=hospital" },
           ].map((c) => {
             const Icon = c.icon;
             return (

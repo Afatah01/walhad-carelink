@@ -14,7 +14,6 @@ export const NAV_LINKS = [
   { key: "nav.how", href: "/how-it-works" },
   { key: "nav.features", href: "/features" },
   { key: "nav.pricing", href: "/pricing" },
-  { key: "nav.hospital", href: "/hospital-solutions" },
   { key: "nav.contact", href: "/contact" },
 ] as const;
 

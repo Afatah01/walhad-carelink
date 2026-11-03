@@ -3,6 +3,8 @@
 #   Hobby workspace, no credit card. What that means in practice:
 #
 #   • Web service: 512 MB / 0.1 CPU, spins down after 15 min idle, ~1 min cold start
+#   • No patient records are created. Glucose data arrives only through a
+#     connected Libre source; DEMO_PROVIDER_ENABLED stays false by default.
 #   • Postgres: free for 30 days from creation, 1 GB, then deleted after a 14-day
 #     grace period unless upgraded. See "The 30-day database problem" in DEPLOY.md.
 #   • No cron jobs and no background workers on Free, so the app syncs itself on
@@ -44,13 +46,21 @@ services:
         sync: false
       - key: APP_SECRET
         generateValue: true
-      - key: SEED_DEMO
+      # First administrator — set this so you can sign in after the first boot.
+      - key: BOOTSTRAP_ADMIN_EMAIL
+        sync: false
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false
+      - key: BOOTSTRAP_ADMIN_NAME
+        sync: false
+      # Optional evaluation logins (no patient data, no readings).
+      - key: CREATE_DEMO_ACCOUNTS
         value: "true"
       - key: DEMO_PASSWORD
         sync: false
-      # How old demo readings may get before the next request refreshes them.
-      - key: DEMO_REFRESH_MINUTES
-        value: "10"
+      # The simulator stays off unless you deliberately want it.
+      - key: DEMO_PROVIDER_ENABLED
+        value: "false"
       - key: TELEGRAM_BOT_TOKEN
         sync: false
       - key: VAPID_PUBLIC_KEY

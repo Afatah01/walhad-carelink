@@ -84,6 +84,8 @@ export interface DashboardPayload {
     failures: number;
     lastError: string | null;
     connected: boolean;
+    /** False when the record has no Libre source at all — different from failing. */
+    configured: boolean;
   };
   family: {
     id: number;
@@ -144,6 +146,7 @@ export interface DashboardPayload {
 }
 
 export function providerLabel(key: string): string {
+  if (!key || key === "none") return "No source connected";
   switch (key) {
     case "demo":
       return "Demo sensor stream";
@@ -290,6 +293,7 @@ export async function buildDashboard(access: PatientAccess, user: UserRow): Prom
       failures: syncState?.consecutive_failures ?? 0,
       lastError: syncState?.last_error ?? null,
       connected: (syncState?.consecutive_failures ?? 0) === 0 && fresh !== "missing",
+      configured: Boolean(patient.provider && patient.provider !== "none" && patient.provider_patient_id),
     },
     family: members
       .filter((m) => m.status === "active")

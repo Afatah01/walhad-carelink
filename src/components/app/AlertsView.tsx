@@ -89,7 +89,7 @@ export function AlertsView() {
   return (
     <div className="space-y-5">
       {toast ? (
-        <div className="fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-xl bg-navy-900 px-4 py-2.5 text-[0.8rem] font-semibold text-white shadow-xl">
+        <div className="pointer-events-none fixed bottom-5 left-1/2 z-50 -translate-x-1/2 rounded-xl bg-navy-900 px-4 py-2.5 text-[0.8rem] font-semibold text-white shadow-xl">
           {toast}
         </div>
       ) : null}

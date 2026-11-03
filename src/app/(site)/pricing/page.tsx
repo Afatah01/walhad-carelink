@@ -264,8 +264,8 @@ export default async function PricingPage() {
                   <Link href="/contact?topic=hospital" className="btn bg-white text-navy-800 hover:bg-white/90">
                     Contact Sales
                   </Link>
-                  <Link href="/hospital-solutions" className="btn border-white/25 bg-white/10 text-white">
-                    See hospital features
+                  <Link href="/contact?topic=hospital" className="btn border-white/25 bg-white/10 text-white">
+                    Talk to our team
                   </Link>
                 </div>
               </div>

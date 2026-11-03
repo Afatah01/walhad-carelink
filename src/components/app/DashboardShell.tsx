@@ -21,6 +21,7 @@ import {
   IconLogout,
   IconMenu,
   IconSettings,
+  IconLink,
   IconShield,
   IconTelegram,
   IconUsers,
@@ -35,6 +36,7 @@ const NAV = [
       { href: "/dashboard/history", label: "History & reports", icon: IconChart },
       { href: "/dashboard/alerts", label: "Alerts & rules", icon: IconAlert },
       { href: "/dashboard/notifications", label: "Notification centre", icon: IconBell },
+      { href: "/dashboard/connection", label: "Connection settings", icon: IconLink },
     ],
   },
   {
@@ -183,11 +185,11 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               Organisation
             </p>
             <Link
-              href="/hospital"
+              href="/admin"
               className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-[0.83rem] font-semibold text-navy-800/85 transition hover:bg-mist"
             >
-              <IconHospital size={17} className="text-navy-500" />
-              Hospital dashboard
+              <IconShield size={17} className="text-navy-500" />
+              Admin console
               <IconArrow size={13} className="ml-auto text-muted" />
             </Link>
           </div>
