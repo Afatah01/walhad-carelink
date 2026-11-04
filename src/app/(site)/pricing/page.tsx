@@ -5,6 +5,7 @@ import { PricingGrid } from "@/components/marketing/PricingGrid";
 import { listPlans } from "@/lib/billing/plans";
 import { ensureSeed } from "@/lib/seed";
 import { IconCheck } from "@/components/ui/Icons";
+import { AcceptedPayments } from "@/components/ui/PaymentIcons";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -36,14 +37,14 @@ export default async function PricingPage() {
       <PageHero
         eyebrow="Pricing"
         title="Simple monthly plans"
-        body="Three plans. Cancel any time. Payment activates your workspace."
+        body="Three plans. Cancel any time."
       />
 
       <section className="shell -mt-6 pb-12">
         <PricingGrid plans={plans} />
-        <p className="mt-5 text-center text-[0.8rem] text-muted">
-          A plan activates only after the payment provider confirms the transaction.
-        </p>
+        <div className="mt-6 flex justify-center">
+          <AcceptedPayments />
+        </div>
       </section>
 
       <section className="shell pb-16">

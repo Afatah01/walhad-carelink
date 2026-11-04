@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { IconArrow, IconCheck } from "@/components/ui/Icons";
+import { AcceptedPayments } from "@/components/ui/PaymentIcons";
 
 const PLANS = [
   {
@@ -99,10 +100,10 @@ export function SignupForm() {
             );
           })}
         </div>
-        <p className="rounded-xl border border-line bg-[#f8fbfe] px-3.5 py-2.5 text-[0.74rem] leading-relaxed text-muted">
-          Your plan starts pending. Nothing is charged here — you will receive a payment link, and monitoring unlocks
-          once the payment is verified.
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-[#f8fbfe] px-4 py-3">
+          <AcceptedPayments />
+          <span className="text-[0.72rem] font-semibold text-muted">Activates after payment</span>
+        </div>
         <button type="button" onClick={() => setStep(2)} className="btn btn-primary w-full">
           Continue with {PLANS.find((p) => p.slug === form.planSlug)?.name} <IconArrow size={15} />
         </button>

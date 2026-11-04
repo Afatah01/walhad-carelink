@@ -7,12 +7,18 @@ export function Wordmark({
   withTagline = false,
   className = "",
 }: {
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
   withTagline?: boolean;
   className?: string;
 }) {
   const scale =
-    size === "lg" ? "text-2xl md:text-[1.7rem]" : size === "sm" ? "text-lg" : "text-xl";
+    size === "xl"
+      ? "text-[1.8rem] md:text-[2.1rem]"
+      : size === "lg"
+        ? "text-2xl md:text-[1.8rem]"
+        : size === "sm"
+          ? "text-xl"
+          : "text-[1.35rem]";
   return (
     <span className={`flex flex-col leading-none ${className}`}>
       <span className={`wordmark ${scale}`}>
@@ -44,6 +50,7 @@ export function LogoMark({
       width={size}
       height={size}
       priority={priority}
+      style={{ width: size, height: size }}
       className={`object-contain ${className}`}
     />
   );
@@ -53,12 +60,12 @@ export function BrandLockup({
   href = "/",
   size = "md",
   showTagline = false,
-  logoSize = 46,
+  logoSize = 52,
   priority = false,
   className = "",
 }: {
   href?: string;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
   showTagline?: boolean;
   logoSize?: number;
   priority?: boolean;
@@ -67,11 +74,14 @@ export function BrandLockup({
   return (
     <Link
       href={href}
-      className={`group flex items-center gap-2.5 ${className}`}
+      className={`group flex items-center gap-3 ${className}`}
       aria-label={`${brand.suite} — home`}
     >
-      <span className="grid place-items-center rounded-2xl bg-white ring-1 ring-line shadow-[0_2px_10px_-4px_rgba(0,47,101,0.28)] transition-transform duration-300 group-hover:-translate-y-0.5">
-        <LogoMark size={logoSize} priority={priority} className="p-1" />
+      <span
+        className="grid flex-none place-items-center rounded-[1.1rem] bg-white shadow-[0_2px_12px_-4px_rgba(0,47,101,0.25)] ring-1 ring-line transition-transform duration-300 group-hover:-translate-y-0.5"
+        style={{ width: logoSize + 8, height: logoSize + 8 }}
+      >
+        <LogoMark size={logoSize} priority={priority} />
       </span>
       <Wordmark size={size} withTagline={showTagline} />
     </Link>

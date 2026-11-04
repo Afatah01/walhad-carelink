@@ -79,7 +79,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const sidebar = (
     <div className="flex h-full flex-col">
       <div className="flex h-[68px] items-center justify-between border-b border-line px-4">
-        <BrandLockup logoSize={38} size="sm" href="/dashboard" />
+        <BrandLockup logoSize={48} size="md" href="/dashboard" />
         <button
           type="button"
           onClick={() => setOpen(false)}

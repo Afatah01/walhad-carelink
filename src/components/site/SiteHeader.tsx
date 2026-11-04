@@ -103,8 +103,8 @@ export function SiteHeader({ signedIn = false }: { signedIn?: boolean }) {
             : "border-transparent bg-white/75 backdrop-blur-md"
         }`}
       >
-        <div className="shell flex h-[72px] items-center justify-between gap-4">
-          <BrandLockup priority logoSize={44} size="md" />
+        <div className="shell flex h-[88px] items-center justify-between gap-4">
+          <BrandLockup priority logoSize={60} size="xl" />
 
           <nav className="hidden items-center gap-x-0.5 lg:flex" aria-label="Primary">
             {NAV_LINKS.map((link) => (
@@ -172,7 +172,7 @@ export function SiteHeader({ signedIn = false }: { signedIn?: boolean }) {
           aria-label={t("nav.menu")}
         >
           <div className="flex items-center justify-between border-b border-line px-5 py-4">
-            <BrandLockup logoSize={38} size="sm" />
+            <BrandLockup logoSize={48} size="lg" />
             <button
               type="button"
               onClick={() => setOpen(false)}

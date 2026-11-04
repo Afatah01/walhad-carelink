@@ -6,8 +6,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="flex min-h-dvh flex-col bg-[#f6f9fc]">
       <header className="border-b border-line bg-white/80 backdrop-blur">
-        <div className="shell flex h-16 items-center justify-between">
-          <BrandLockup logoSize={40} size="md" />
+        <div className="shell flex h-20 items-center justify-between">
+          <BrandLockup logoSize={58} size="lg" />
           <Link href="/" className="btn btn-sm btn-quiet">
             <IconArrow size={15} className="rotate-180" /> Back to site
           </Link>

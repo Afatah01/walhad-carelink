@@ -13,13 +13,8 @@ export default async function SignupPage() {
   return (
     <div className="w-full max-w-3xl">
       <div className="w-full">
-        <h1 className="text-[1.7rem] font-extrabold tracking-tight text-navy-900 md:text-[2rem]">
-          Start monitoring in three steps
-        </h1>
-        <p className="mt-1.5 text-[0.9rem] leading-relaxed text-muted">
-          Choose a plan, create your account, then connect an authorised FreeStyle Libre source. One monitored patient
-          per household plan.
-        </p>
+        <h1 className="display-2 text-navy-900">Create your account</h1>
+        <p className="mt-2 text-[0.92rem] text-muted">Choose a plan. Connect your sensor after signing up.</p>
 
         <ol className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[0.72rem] font-bold uppercase tracking-[0.12em]">
           {["Plan", "Account", "Connect sensor"].map((label, i) => (
@@ -40,7 +35,7 @@ export default async function SignupPage() {
         </div>
 
         <p className="mt-5 text-center text-[0.74rem] text-muted">
-          Need something larger than 100 patients?{" "}
+          Need more than 100 patients?{" "}
           <Link href="/contact?topic=hospital" className="font-bold text-brand-700 hover:underline">
             Contact us
           </Link>

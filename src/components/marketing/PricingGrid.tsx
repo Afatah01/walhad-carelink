@@ -47,9 +47,8 @@ export function PricingGrid({
       {plans.map((plan) => {
         const featured = plan.highlight === 1 || plan.slug === highlightedSlug;
         const Icon = planIcon(plan.slug);
-        const features = compact
-          ? plan.features.slice(0, plan.slug === "hospital" ? 6 : 7)
-          : plan.features;
+        // Short lists only — long feature dumps are noise.
+        const features = plan.features.slice(0, compact ? 3 : 4);
 
         return (
           <div
@@ -67,7 +66,7 @@ export function PricingGrid({
               </>
             ) : null}
 
-            <div className="flex flex-1 flex-col p-6 md:p-7">
+            <div className="flex flex-1 flex-col p-5 md:p-6">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2.5">
                   <span
@@ -101,20 +100,16 @@ export function PricingGrid({
                 ) : null}
               </div>
 
-              <p className="mt-3 min-h-[2.6rem] text-[0.84rem] leading-relaxed text-muted">{plan.tagline}</p>
+              <p className="mt-2.5 text-[0.82rem] leading-snug text-muted">{plan.tagline}</p>
 
               <div className="mt-4">
                 <PriceBlock plan={plan} size={featured ? "lg" : "md"} />
-                <p className="mt-1.5 text-[0.72rem] font-semibold text-muted">
-                  {plan.slug === "hospital"
-                    ? "Final price depends on patients, staff, integrations and notification volume."
-                    : "Billed monthly · cancel anytime · taxes where applicable."}
-                </p>
+                <p className="mt-1 text-[0.68rem] font-semibold text-muted">per month</p>
               </div>
 
-              <div className="my-5 h-px w-full bg-line" />
+              <div className="my-4 h-px w-full bg-line" />
 
-              <ul className="flex-1 space-y-2.5">
+              <ul className="flex-1 space-y-2">
                 {features.map((f) => (
                   <li key={f} className="flex items-start gap-2 text-[0.84rem] leading-snug text-navy-800">
                     <span
@@ -127,11 +122,6 @@ export function PricingGrid({
                     <span>{f}</span>
                   </li>
                 ))}
-                {compact && plan.features.length > features.length ? (
-                  <li className="pl-6 text-[0.78rem] font-semibold text-brand-600">
-                    +{plan.features.length - features.length} more included
-                  </li>
-                ) : null}
               </ul>
 
               <Link
@@ -141,13 +131,7 @@ export function PricingGrid({
                 {plan.cta_label ?? `Choose ${plan.name}`}
                 <IconArrow size={16} />
               </Link>
-              {plan.slug === "hospital" ? (
-                <p className="mt-2 text-center text-[0.7rem] text-muted">Custom quote within 2 business days</p>
-              ) : (
-                <p className="mt-2 text-center text-[0.7rem] text-muted">
-                  Secure checkout · verified payment confirmation
-                </p>
-              )}
+
             </div>
           </div>
         );

@@ -14,19 +14,14 @@ export default function AboutPage() {
       <PageHero eyebrow="About" title="Built for families in the Horn of Africa" />
 
       <section className="shell max-w-3xl pb-14">
-        <div className="space-y-4 text-[0.95rem] leading-relaxed text-navy-800/90">
+        <div className="space-y-4 text-[0.98rem] leading-relaxed text-navy-800/90">
           <p>
-            Diabetes care depends on continuity: someone has to notice a low at 3am. {brand.suite} exists so that
-            the people who care for a patient can see real glucose readings and act quickly, without the patient
-            having to report anything.
+            {brand.suite} connects FreeStyle Libre sensors to the people who care for a patient, so a low at 3am
+            reaches someone who can act.
           </p>
           <p>
-            We connect to FreeStyle Libre sensors through authorised sources only. Every reading on the platform
-            arrived from a real sensor — we never display sample or simulated data as if it were a patient&apos;s own.
-          </p>
-          <p>
-            Family plans cover one patient and a small care circle. Hospital plans give clinics staff accounts,
-            assigned patient lists and a ward-level view.
+            Every reading on the platform came from a real sensor. We never show simulated or sample data as if it
+            were a patient&apos;s own.
           </p>
         </div>
 

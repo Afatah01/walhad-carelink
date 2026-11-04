@@ -16,9 +16,9 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 const STEPS = [
-  { icon: IconUsers, title: "Create an account", body: "Pick a plan and sign up in a minute." },
-  { icon: IconBell, title: "Connect a sensor", body: "Link an authorised Libre source." },
-  { icon: IconStethoscope, title: "Monitor", body: "Live readings and alerts for your care circle." },
+  { icon: IconUsers, title: "Subscribe", body: "Pick a plan." },
+  { icon: IconBell, title: "Connect", body: "Link your Libre sensor." },
+  { icon: IconStethoscope, title: "Monitor", body: "Live readings and alerts." },
 ];
 
 export default async function HomePage() {
@@ -64,7 +64,7 @@ export default async function HomePage() {
 
       <CtaBand
         title="Start monitoring today"
-        body="Create an account, connect a sensor, share readings with your family."
+        body="From $30 per month."
         primary={{ label: "Get Started", href: "/signup" }}
         secondary={{ label: "Sign in", href: "/login" }}
       />

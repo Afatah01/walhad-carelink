@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import { cookies } from "next/headers";
 import "./globals.css";
 import { I18nProvider } from "@/components/i18n/I18nProvider";
@@ -6,6 +7,17 @@ import { brand } from "@/lib/brand";
 import type { Locale } from "@/lib/i18n";
 import { dirFor, LOCALES } from "@/lib/i18n";
 import { ensureBooted } from "@/lib/boot";
+
+/**
+ * Self-hosted at build time by next/font — no runtime request to Google, and
+ * no layout shift. This is the single typeface for the whole product.
+ */
+const sans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-sans-loaded",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -72,7 +84,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const locale: Locale = LOCALES.some((l) => l.code === cookieLocale) ? (cookieLocale as Locale) : "en";
 
   return (
-    <html lang={locale} dir={dirFor(locale)} suppressHydrationWarning>
+    <html lang={locale} dir={dirFor(locale)} className={sans.variable} suppressHydrationWarning>
       <body className="min-h-dvh antialiased">
         <I18nProvider initialLocale={locale}>{children}</I18nProvider>
       </body>
