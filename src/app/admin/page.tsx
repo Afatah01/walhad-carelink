@@ -30,7 +30,7 @@ export default async function AdminPage() {
 
   const counts = await Promise.all(
     orgs.map(async (o) => {
-      const row = await db().get<{ c: number }>("SELECT COUNT(*) AS c FROM patients WHERE org_id = ?", [o.id]);
+      const row = await db().get<{ c: number }>("SELECT COUNT(*) AS c FROM patients WHERE org_id = ? AND status <> 'archived'", [o.id]);
       return { orgId: o.id, patients: num(row?.c ?? 0) };
     }),
   );

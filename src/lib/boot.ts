@@ -74,14 +74,23 @@ export async function bootStatus(): Promise<{
   latestReading: string | null;
 }> {
   const seeded = Boolean(await getSetting("seed_version"));
+  // Archived records are not live patients and must not appear in status.
   const patients = await db()
-    .get<{ c: number }>("SELECT COUNT(*) AS c FROM patients")
+    .get<{ c: number }>("SELECT COUNT(*) AS c FROM patients WHERE status <> 'archived'")
     .catch(() => ({ c: 0 }));
   const connected = await db()
-    .get<{ c: number }>("SELECT COUNT(*) AS c FROM patients WHERE provider <> 'demo'")
+    .get<{ c: number }>(
+      `SELECT COUNT(*) AS c FROM patients
+        WHERE status <> 'archived' AND provider <> 'demo' AND provider <> 'none'
+          AND provider_patient_id IS NOT NULL`,
+    )
     .catch(() => ({ c: 0 }));
   const row = await db()
-    .get<{ last: string | null }>("SELECT MAX(taken_at) AS last FROM glucose_readings")
+    .get<{ last: string | null }>(
+      `SELECT MAX(g.taken_at) AS last FROM glucose_readings g
+        JOIN patients p ON p.id = g.patient_id
+        WHERE p.status <> 'archived'`,
+    )
     .catch(() => ({ last: null }));
   return {
     migrated: booted,
