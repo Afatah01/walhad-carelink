@@ -72,7 +72,10 @@ export function ContactForm({ initialTopic = "general" }: { initialTopic?: strin
   }
 
   return (
-    <form onSubmit={submit} className="card p-6 md:p-8">
+    <form
+      onSubmit={submit}
+      className="rounded-[20px] border border-line bg-white p-6 shadow-[0_18px_50px_-30px_rgba(20,50,60,0.3)] md:p-8"
+    >
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Full Name" required>
           <input id="contact-name" name="name" required value={form.name} onChange={set("name")} className="input" autoComplete="name" />
@@ -116,7 +119,7 @@ export function ContactForm({ initialTopic = "general" }: { initialTopic?: strin
           type="checkbox"
           checked={form.consent}
           onChange={set("consent")}
-          className="mt-0.5 h-4 w-4 flex-none rounded border-line text-teal-600 focus:ring-teal-300"
+          className="mt-0.5 h-[18px] w-[18px] flex-none rounded-[5px] border-[#c9d8dc] text-teal-500 accent-[#087f8c] focus:ring-teal-300"
         />
         <span className="text-[0.8rem] leading-relaxed text-navy-800/85">
           I agree that Walhad CareLink may contact me about this enquiry.
@@ -149,9 +152,9 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-[0.72rem] font-bold uppercase tracking-[0.1em] text-muted">
-        {label} {required ? <span className="text-teal-600">*</span> : null}
-        {hint ? <span className="ml-1 font-medium normal-case tracking-normal text-muted/70">{hint}</span> : null}
+      <span className="field-label">
+        {label} {required ? <span className="text-teal-500">*</span> : null}
+        {hint ? <span className="ml-1 font-normal text-faint">{hint}</span> : null}
       </span>
       {children}
     </label>

@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { BrandLockup } from "@/components/Brand";
+import { IconArrow } from "@/components/ui/Icons";
 import { brand } from "@/lib/brand";
 import type { SiteContact } from "@/lib/site-config";
 
-const COLUMNS = [
+const COLUMNS: { title: string; links: { label: string; href: string }[] }[] = [
   {
     title: "Product",
     links: [
@@ -31,36 +32,38 @@ const COLUMNS = [
   },
 ];
 
-export function SiteFooter({ contact }: { contact: SiteContact }) {
-  const hasContact = Boolean(contact.email || contact.phone || contact.address);
-
+export function SiteFooter({ contact }: { contact?: SiteContact }) {
   return (
-    <footer className="border-t border-line bg-white">
-      <div className="shell py-12">
-        <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(3,0.8fr)]">
+    <footer className="bg-[#062f36] text-white">
+      <div className="shell">
+        {/* four columns */}
+        <div className="grid gap-10 py-14 md:grid-cols-2 md:py-16 lg:grid-cols-[1.6fr_1fr_1fr_1fr] lg:gap-12">
           <div>
-            <BrandLockup logoSize={46} size="md" />
-            <p className="mt-4 max-w-xs text-[0.85rem] leading-relaxed text-muted">
-              Connected glucose monitoring for families and healthcare teams.
+            <BrandLockup logoSize={44} size="md" onDark />
+            <p className="mt-4 max-w-[300px] text-[0.875rem] leading-relaxed text-[#9fbfc4]">
+              Connected glucose monitoring for families and healthcare teams — built around the FreeStyle Libre
+              ecosystem.
             </p>
-            {hasContact ? (
-              <div className="mt-4 space-y-1 text-[0.82rem] text-muted">
-                {contact.email ? <p>{contact.email}</p> : null}
-                {contact.phone ? <p>{contact.phone}</p> : null}
-                {contact.address ? <p>{contact.address}</p> : null}
-              </div>
+            {contact?.email ? (
+              <a
+                href={`mailto:${contact.email}`}
+                className="mt-5 inline-flex items-center gap-1.5 text-[0.85rem] font-semibold text-[#7fd0d6] transition hover:text-white"
+              >
+                {contact.email}
+                <IconArrow size={13} />
+              </a>
             ) : null}
           </div>
 
           {COLUMNS.map((col) => (
             <div key={col.title}>
-              <h2 className="text-[0.7rem] font-bold uppercase tracking-[0.16em] text-navy-900">{col.title}</h2>
-              <ul className="mt-3.5 space-y-2.5">
+              <h3 className="text-[0.72rem] font-bold uppercase tracking-[0.14em] text-white">{col.title}</h3>
+              <ul className="mt-4 space-y-2.5">
                 {col.links.map((l) => (
                   <li key={l.href + l.label}>
                     <Link
                       href={l.href}
-                      className="text-[0.85rem] text-muted transition-colors hover:text-teal-600"
+                      className="text-[0.875rem] text-[#9fbfc4] transition-colors duration-200 hover:text-white"
                     >
                       {l.label}
                     </Link>
@@ -71,27 +74,29 @@ export function SiteFooter({ contact }: { contact: SiteContact }) {
           ))}
         </div>
 
-        <div className="mt-10 border-t border-line pt-6">
-          <p className="text-[0.72rem] leading-relaxed text-muted/90">
-            Walhad CareLink supports monitoring and does not replace professional medical care or emergency
-            services. Always follow the advice of your clinician.
-          </p>
-          <p className="mt-1.5 text-[0.72rem] leading-relaxed text-muted/90">
-            FreeStyle, FreeStyle Libre and LibreLink are trademarks of Abbott. Walhad CareLink is not affiliated
-            with, endorsed by or sponsored by Abbott.
-          </p>
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-[0.75rem] text-muted">
-            <p>
-              © {new Date().getFullYear()} {brand.suite}
+        {/* bottom strip */}
+        <div className="border-t border-white/10 py-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <p className="max-w-[720px] text-[0.75rem] leading-relaxed text-[#7f9fa4]">
+              Walhad CareLink supports monitoring and does not replace professional medical care or emergency services.
+              Always follow the advice of your clinician. In an emergency, contact local emergency services.
             </p>
-            <div className="flex gap-4">
-              <Link href="/legal/privacy" className="hover:text-teal-600">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[0.75rem] text-[#7f9fa4]">
+              <Link href="/legal/privacy" className="transition hover:text-white">
                 Privacy
               </Link>
-              <Link href="/legal/terms" className="hover:text-teal-600">
+              <Link href="/legal/terms" className="transition hover:text-white">
                 Terms
               </Link>
             </div>
+          </div>
+
+          <div className="mt-5 flex flex-col gap-3 border-t border-white/[0.07] pt-5 md:flex-row md:items-center md:justify-between">
+            <p className="text-[0.72rem] text-[#6d8d92]">© {new Date().getFullYear()} {brand.suite}. All rights reserved.</p>
+            <p className="max-w-[640px] text-[0.68rem] leading-relaxed text-[#6d8d92]">
+              FreeStyle, FreeStyle Libre and LibreLink are trademarks of Abbott. Walhad CareLink is not affiliated with,
+              endorsed by or sponsored by Abbott.
+            </p>
           </div>
         </div>
       </div>
