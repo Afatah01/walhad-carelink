@@ -33,7 +33,9 @@ const schema = z.object({
     .max(30)
     .optional()
     .or(z.literal("")),
-  planSlug: z.enum(["family-basic", "family-premium"]).default("family-basic"),
+  planSlug: z.enum(["family-basic", "family-premium", "hospital"]).default("family-basic"),
+  /** Hospitals register the organisation name; individuals leave it blank. */
+  orgName: z.string().trim().max(120).optional().or(z.literal("")),
   timezone: z.string().trim().max(64).default("Africa/Mogadishu"),
   unit: z.enum(["mg/dL", "mmol/L"]).default("mg/dL"),
   /** The person being monitored. Defaults to the account holder. */
@@ -70,9 +72,10 @@ export async function POST(req: Request) {
 
   // Every self-service household gets its own organisation, which is what scopes
   // their data. Clinicians in another org can never see it.
+  const isHospital = body.planSlug === "hospital";
   const org = await createOrg({
-    name: `${body.name}'s workspace`,
-    type: "family",
+    name: body.orgName || (isHospital ? `${body.name} (hospital)` : `${body.name}'s workspace`),
+    type: isHospital ? "hospital" : "family",
     contactEmail: email,
     contactPhone: body.phone || undefined,
   });
@@ -81,12 +84,57 @@ export async function POST(req: Request) {
     email,
     name: body.name,
     password: body.password,
-    role: "patient",
+    // A hospital plan is bought by a clinician who then enrols patients.
+    role: isHospital ? "doctor" : "patient",
     orgId: org.id,
     phone: body.phone || null,
     timezone: body.timezone,
     unit: body.unit,
   });
+
+  // A hospital workspace starts with no patients at all — staff enrol them.
+  if (isHospital) {
+    const subscription = await createSubscription({
+      planSlug: body.planSlug,
+      orgId: org.id,
+      provider: "manual",
+    }).catch(() => null);
+
+    const session = await signIn({
+      email,
+      password: body.password,
+      ip,
+      userAgent: req.headers.get("user-agent") ?? undefined,
+    });
+    if (session.ok) await setSessionCookie(session.token);
+
+    await audit({
+      actorId: user.id,
+      actorLabel: email,
+      action: "org.signup",
+      entity: "organizations",
+      entityId: org.id,
+      ip,
+      meta: { plan: body.planSlug, subscriptionId: subscription?.subscription?.id ?? null },
+    });
+
+    return json({
+      ok: true,
+      redirect: "/admin",
+      user: { id: user.id, name: user.name, email: user.email },
+      org: { id: org.id, name: org.name },
+      subscription: subscription
+        ? {
+            id: subscription.subscription.id,
+            status: subscription.subscription.status,
+            plan: subscription.plan.slug,
+            price: subscription.plan.price_cents / 100,
+            from: subscription.plan.price_from === 1,
+          }
+        : null,
+      message: "Hospital workspace created. Add staff and enrol patients from the admin console.",
+    });
+  }
 
   // The monitored person may be the account holder or someone they care for.
   const patient = await createPatient({

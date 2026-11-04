@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/auth";
 import { SignupForm } from "@/components/auth/SignupForm";
-import { BrandLockup } from "@/components/Brand";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Create your account", robots: { index: false } };
@@ -12,17 +11,8 @@ export default async function SignupPage() {
   if (user) redirect(user.role === "admin" ? "/admin" : "/dashboard");
 
   return (
-    <main className="min-h-screen bg-[#f6f9fc]">
-      <header className="border-b border-line bg-white">
-        <div className="shell flex h-16 items-center justify-between">
-          <BrandLockup href="/" size="sm" logoSize={34} />
-          <Link href="/login" className="text-[0.82rem] font-bold text-brand-700 hover:underline">
-            Sign in
-          </Link>
-        </div>
-      </header>
-
-      <div className="shell max-w-3xl py-8 md:py-12">
+    <div className="w-full max-w-3xl">
+      <div className="w-full">
         <h1 className="text-[1.7rem] font-extrabold tracking-tight text-navy-900 md:text-[2rem]">
           Start monitoring in three steps
         </h1>
@@ -50,12 +40,12 @@ export default async function SignupPage() {
         </div>
 
         <p className="mt-5 text-center text-[0.74rem] text-muted">
-          Running a hospital or clinic?{" "}
+          Need something larger than 100 patients?{" "}
           <Link href="/contact?topic=hospital" className="font-bold text-brand-700 hover:underline">
-            Request a custom plan
+            Contact us
           </Link>
         </p>
       </div>
-    </main>
+    </div>
   );
 }

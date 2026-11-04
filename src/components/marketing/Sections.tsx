@@ -255,48 +255,6 @@ export function ChannelStrip() {
 
 /* -------------------------- notification sample -------------------------- */
 
-export function TelegramSample() {
-  return (
-    <div className="w-full overflow-hidden rounded-2xl border border-line bg-white shadow-card">
-      <div className="flex items-center gap-2 border-b border-line bg-[#f7fafc] px-4 py-2.5">
-        <span className="grid h-7 w-7 place-items-center rounded-full bg-brand-500 text-white">
-          <IconTelegram size={14} />
-        </span>
-        <div>
-          <p className="text-[0.78rem] font-bold text-navy-900">Walhad CareLink Bot</p>
-          <p className="text-[0.62rem] font-semibold text-teal-600">online</p>
-        </div>
-      </div>
-      <div className="space-y-2.5 bg-[#f2f7fb] p-3.5">
-        <div className="max-w-[92%] rounded-2xl rounded-tl-md bg-white p-3 text-[0.78rem] leading-relaxed text-navy-900 shadow-sm">
-          <p className="font-extrabold text-low">🚨 CRITICAL GLUCOSE ALERT</p>
-          <p className="mt-1.5 text-[0.75rem] text-muted">An urgent glucose alert has been detected.</p>
-          <div className="mt-2 space-y-0.5 font-semibold">
-            <p>Patient: Aisha Mohamed</p>
-            <p>Glucose Reading: 58 mg/dL</p>
-            <p>Status: Critically Low</p>
-            <p>Time: 01 Nov 2026, 02:14</p>
-          </div>
-          <p className="mt-2">Please contact the patient immediately.</p>
-          <div className="mt-2.5 flex gap-1.5">
-            <span className="rounded-lg bg-brand-500 px-2.5 py-1 text-[0.68rem] font-bold text-white">✅ Acknowledge</span>
-            <span className="rounded-lg bg-mist px-2.5 py-1 text-[0.68rem] font-bold text-navy-700">Latest glucose</span>
-          </div>
-        </div>
-        <div className="ml-auto max-w-[80%] rounded-2xl rounded-tr-md bg-[#d8f3e9] p-2.5 text-[0.76rem] font-semibold text-[#0b4f3c]">
-          /acknowledge → ✅ Acknowledged. On my way.
-        </div>
-      </div>
-      <div className="flex items-center gap-1.5 border-t border-line px-3 py-2 text-[0.66rem] font-semibold text-muted">
-        <IconCheck size={12} className="text-teal-600" />
-        Delivery recorded · family acknowledgement stored
-      </div>
-    </div>
-  );
-}
-
-/* ------------------------------ trust grid ------------------------------- */
-
 export function TrustGrid() {
   const items = [
     { icon: IconShield, title: "Encrypted credentials", body: "Provider sessions sealed with AES-256-GCM and never exposed to the browser." },

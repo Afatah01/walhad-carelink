@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useDashboardCtx } from "@/components/app/DashboardProvider";
-import { DEMO_TELEGRAM_PREVIEWS } from "@/lib/demo-telegram";
 import {
   IconCheck,
   IconCopy,
@@ -24,7 +23,6 @@ export function TelegramView() {
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [showLog, setShowLog] = useState(false);
 
   const notify = (message: string) => {
     setToast(message);
@@ -360,56 +358,39 @@ export function TelegramView() {
 
         <section className="card overflow-hidden">
           <div className="flex items-center justify-between border-b border-line px-4 py-3">
-            <h2 className="text-[0.9rem] font-extrabold text-navy-900">Example conversation</h2>
-            <button
-              onClick={() => setShowLog((v) => !v)}
-              className="text-[0.7rem] font-bold text-brand-700 hover:underline"
-            >
-              {showLog ? "Hide" : "Show"} delivery log
-            </button>
+            <h2 className="text-[0.9rem] font-extrabold text-navy-900">Delivery log</h2>
+            <span className="text-[0.68rem] font-semibold text-muted">
+              {state.deliveries.length} attempt{state.deliveries.length === 1 ? "" : "s"}
+            </span>
           </div>
-          <div className="space-y-2 bg-[#f2f7fb] p-4">
-            {DEMO_TELEGRAM_PREVIEWS.map((m, i) => (
-              <div
-                key={i}
-                className={`max-w-[92%] rounded-2xl p-2.5 text-[0.78rem] leading-relaxed ${
-                  m.from === "bot"
-                    ? "rounded-tl-md bg-white text-navy-900 shadow-sm"
-                    : "ml-auto rounded-tr-md bg-[#d8f3e9] font-semibold text-[#0b4f3c]"
-                }`}
-              >
-                <p className={m.from === "bot" ? "whitespace-pre-wrap" : "whitespace-pre-wrap"}>{m.text}</p>
-                <p className="mt-1 text-right text-[0.58rem] font-semibold text-muted">{m.time}</p>
-              </div>
-            ))}
-          </div>
-          {showLog ? (
-            <div className="max-h-56 overflow-y-auto border-t border-line">
-              {state.deliveries.length ? (
-                <ul className="divide-y divide-line">
-                  {state.deliveries.map((d: any) => (
-                    <li key={d.id} className="flex items-center gap-2 px-4 py-2 text-[0.72rem]">
-                      <span
-                        className={`h-1.5 w-1.5 flex-none rounded-full ${
-                          d.status === "sent" ? "bg-teal-500" : d.status === "failed" ? "bg-low" : "bg-[#c3cfdb]"
-                        }`}
-                      />
-                      <span className="font-semibold text-navy-900">{d.channel}</span>
-                      <span className="truncate text-muted">{d.recipient ?? "—"}</span>
-                      <span className="ml-auto flex-none font-bold uppercase tracking-wide text-muted">
-                        {d.status}
-                      </span>
-                      <span className="w-16 flex-none text-right text-muted">
-                        {stampTime(d.createdAt).split(",")[1] ?? ""}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="p-4 text-center text-[0.76rem] text-muted">No delivery attempts recorded yet.</p>
-              )}
+          {state.deliveries.length ? (
+            <div className="max-h-80 overflow-y-auto">
+              <ul className="divide-y divide-line">
+                {state.deliveries.map((d: any) => (
+                  <li key={d.id} className="flex items-center gap-2 px-4 py-2.5 text-[0.74rem]">
+                    <span
+                      className={`h-1.5 w-1.5 flex-none rounded-full ${
+                        d.status === "sent" ? "bg-teal-500" : d.status === "failed" ? "bg-low" : "bg-[#c3cfdb]"
+                      }`}
+                    />
+                    <span className="font-semibold capitalize text-navy-900">{d.channel}</span>
+                    <span className="truncate text-muted">{d.recipient ?? "—"}</span>
+                    <span className="ml-auto flex-none font-bold uppercase tracking-wide text-muted">{d.status}</span>
+                    <span className="w-16 flex-none text-right text-muted">
+                      {d.createdAt ? stampTime(d.createdAt).split(",")[1] ?? "" : ""}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </div>
-          ) : null}
+          ) : (
+            <div className="px-4 py-8 text-center">
+              <p className="text-[0.82rem] font-semibold text-muted">No messages sent yet.</p>
+              <p className="mt-1 text-[0.74rem] text-muted">
+                Once a Telegram chat is linked and an alert fires, every delivery appears here with its real status.
+              </p>
+            </div>
+          )}
         </section>
       </div>
 

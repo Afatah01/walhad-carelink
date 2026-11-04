@@ -9,21 +9,22 @@ const PLANS = [
     slug: "family-basic" as const,
     name: "Family Basic",
     price: 30,
+    from: false,
     blurb: "One patient, low and high alerts",
-    features: ["1 monitored patient", "Low & high glucose alerts", "2 family recipients", "Glucose history & reports"],
   },
   {
     slug: "family-premium" as const,
     name: "Family Premium",
     price: 50,
-    blurb: "Rapid-change alerts and more caregivers",
-    features: [
-      "1 monitored patient",
-      "All alert types incl. rapid change",
-      "5 family recipients",
-      "Telegram + SMS channels",
-      "Extended history",
-    ],
+    from: false,
+    blurb: "All alert types, more caregivers",
+  },
+  {
+    slug: "hospital" as const,
+    name: "Hospital",
+    price: 100,
+    from: true,
+    blurb: "Custom capacity for hospitals and clinics",
   },
 ];
 
@@ -36,7 +37,8 @@ export function SignupForm() {
     email: "",
     password: "",
     phone: "",
-    planSlug: "family-basic" as "family-basic" | "family-premium",
+    planSlug: "family-basic" as "family-basic" | "family-premium" | "hospital",
+    orgName: "",
     timezone: "Africa/Mogadishu",
     unit: "mg/dL" as "mg/dL" | "mmol/L",
     patientName: "",
@@ -71,7 +73,7 @@ export function SignupForm() {
   if (step === 1) {
     return (
       <div className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-3">
           {PLANS.map((p) => {
             const active = form.planSlug === p.slug;
             return (
@@ -83,25 +85,16 @@ export function SignupForm() {
                   active ? "border-brand-400 bg-brand-50/60 ring-2 ring-brand-200" : "border-line bg-white hover:border-brand-200"
                 }`}
               >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-[0.95rem] font-extrabold text-navy-900">{p.name}</p>
-                    <p className="text-[0.72rem] font-semibold text-muted">{p.blurb}</p>
-                  </div>
-                  {active ? <IconCheck size={16} className="text-brand-600" /> : null}
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-[0.9rem] font-extrabold text-navy-900">{p.name}</p>
+                  {active ? <IconCheck size={15} className="flex-none text-brand-600" /> : null}
                 </div>
-                <p className="mt-2 text-[1.6rem] font-extrabold tracking-tight text-navy-900">
+                <p className="mt-1.5 text-[1.5rem] font-extrabold leading-none tracking-tight text-navy-900">
+                  {p.from ? <span className="text-[0.72rem] font-bold text-muted">from </span> : null}
                   ${p.price}
-                  <span className="text-[0.7rem] font-bold text-muted">/month</span>
                 </p>
-                <ul className="mt-2 space-y-1">
-                  {p.features.map((f) => (
-                    <li key={f} className="flex items-start gap-1.5 text-[0.74rem] text-navy-800/80">
-                      <IconCheck size={12} className="mt-[3px] flex-none text-teal-600" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
+                <p className="mt-0.5 text-[0.66rem] font-bold text-muted">{p.from ? "per month" : "/month"}</p>
+                <p className="mt-2 text-[0.73rem] leading-snug text-muted">{p.blurb}</p>
               </button>
             );
           })}
@@ -150,22 +143,30 @@ export function SignupForm() {
         <Field label="Phone (optional)" hint="Used for SMS alerts once a gateway is configured.">
           <input value={form.phone} onChange={set("phone")} className="input" placeholder="+252 …" autoComplete="tel" />
         </Field>
-        <Field label="Who is being monitored?">
-          <input
-            value={form.patientName}
-            onChange={set("patientName")}
-            className="input"
-            placeholder={form.name || "Leave blank if it is you"}
-          />
-        </Field>
-        <Field label="Relationship">
-          <select value={form.relationship} onChange={set("relationship")} className="input">
-            <option value="self">This is me</option>
-            <option value="child">My child</option>
-            <option value="parent">My parent</option>
-            <option value="family">Another family member</option>
-          </select>
-        </Field>
+        {form.planSlug === "hospital" ? (
+          <Field label="Hospital name">
+            <input value={form.orgName} onChange={set("orgName")} className="input" placeholder="e.g. Hargeisa General Hospital" />
+          </Field>
+        ) : (
+          <>
+            <Field label="Who is being monitored?">
+              <input
+                value={form.patientName}
+                onChange={set("patientName")}
+                className="input"
+                placeholder={form.name || "Leave blank if it is you"}
+              />
+            </Field>
+            <Field label="Relationship">
+              <select value={form.relationship} onChange={set("relationship")} className="input">
+                <option value="self">This is me</option>
+                <option value="child">My child</option>
+                <option value="parent">My parent</option>
+                <option value="family">Another family member</option>
+              </select>
+            </Field>
+          </>
+        )}
         <Field label="Time zone">
           <select value={form.timezone} onChange={set("timezone")} className="input">
             {["Africa/Mogadishu", "Africa/Nairobi", "Africa/Addis_Ababa", "Africa/Djibouti", "Europe/London", "Europe/Istanbul", "Asia/Dubai"].map((z) => (
