@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BrandLockup } from "@/components/Brand";
-import { IconArrow, IconGlobe, IconMenu, IconX } from "@/components/ui/Icons";
+import { IconArrow, IconMenu, IconX } from "@/components/ui/Icons";
 import { useI18n } from "@/components/i18n/I18nProvider";
 
 export const NAV_LINKS = [
@@ -15,57 +15,7 @@ export const NAV_LINKS = [
   { key: "nav.features", href: "/features" },
   { key: "nav.pricing", href: "/pricing" },
   { key: "nav.contact", href: "/contact" },
-] as const;
-
-export function LanguageSelector({ compact = false }: { compact?: boolean }) {
-  const { locale, setLocale, list, t } = useI18n();
-  const [open, setOpen] = useState(false);
-  const current = list.find((l) => l.code === locale) ?? list[0];
-
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 rounded-full border border-line bg-white/80 px-2.5 py-1.5 text-xs font-bold text-navy-800 transition hover:border-brand-200 hover:bg-white"
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-label={t("lang.label")}
-      >
-        <IconGlobe size={15} />
-        {compact ? current.code.toUpperCase() : current.native}
-      </button>
-      {open ? (
-        <>
-          <button className="fixed inset-0 z-30 cursor-default" aria-hidden onClick={() => setOpen(false)} tabIndex={-1} />
-          <ul
-            role="listbox"
-            className="absolute right-0 z-40 mt-2 w-40 overflow-hidden rounded-xl border border-line bg-white p-1 shadow-lg"
-          >
-            {list.map((l) => (
-              <li key={l.code}>
-                <button
-                  role="option"
-                  aria-selected={l.code === locale}
-                  onClick={() => {
-                    setLocale(l.code);
-                    setOpen(false);
-                  }}
-                  className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-sm transition ${
-                    l.code === locale ? "bg-brand-50 font-bold text-brand-700" : "text-ink hover:bg-mist"
-                  }`}
-                >
-                  <span>{l.native}</span>
-                  <span className="text-[0.65rem] uppercase tracking-wider text-muted">{l.code}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </>
-      ) : null}
-    </div>
-  );
-}
+ ] as const;
 
 export function SiteHeader({ signedIn = false }: { signedIn?: boolean }) {
   const pathname = usePathname();
@@ -124,9 +74,6 @@ export function SiteHeader({ signedIn = false }: { signedIn?: boolean }) {
           </nav>
 
           <div className="flex items-center gap-2">
-            <div className="hidden md:block">
-              <LanguageSelector />
-            </div>
             <Link
               href={signedIn ? "/dashboard" : "/login"}
               className="btn btn-sm btn-quiet hidden sm:inline-flex"
@@ -198,7 +145,6 @@ export function SiteHeader({ signedIn = false }: { signedIn?: boolean }) {
           <div className="space-y-2 border-t border-line p-4">
             <div className="flex items-center justify-between pb-1">
               <span className="text-xs font-bold uppercase tracking-wider text-muted">{t("lang.label")}</span>
-              <LanguageSelector compact />
             </div>
             <Link href={signedIn ? "/dashboard" : "/login"} className="btn btn-ghost w-full">
               {signedIn ? t("nav.dashboard") : t("nav.signIn")}

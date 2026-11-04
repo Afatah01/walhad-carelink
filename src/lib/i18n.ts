@@ -1,9 +1,11 @@
-export type Locale = "en" | "so" | "ar";
+// The product ships in English only. The other locale dictionaries were
+// removed so the interface cannot render a half-translated page: the public
+// pages are hard-coded English, and offering a selector that only translated
+// the navigation chrome produced Somali headings above English body copy.
+export type Locale = "en";
 
 export const LOCALES: { code: Locale; label: string; native: string; dir: "ltr" | "rtl" }[] = [
   { code: "en", label: "English", native: "English", dir: "ltr" },
-  { code: "so", label: "Somali", native: "Soomaali", dir: "ltr" },
-  { code: "ar", label: "Arabic", native: "العربية", dir: "rtl" },
 ];
 
 type Dict = Record<string, string>;
@@ -140,12 +142,12 @@ const ar: Dict = {
   "common.back": "رجوع",
 };
 
-export const dictionaries: Record<Locale, Dict> = { en, so, ar };
+export const dictionaries: Record<Locale, Dict> = { en };
 
 export function translate(locale: Locale, key: string): string {
   return dictionaries[locale]?.[key] ?? dictionaries.en[key] ?? key;
 }
 
-export function dirFor(locale: Locale): "ltr" | "rtl" {
-  return locale === "ar" ? "rtl" : "ltr";
+export function dirFor(_locale: Locale): "ltr" | "rtl" {
+  return "ltr";
 }

@@ -5,7 +5,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BrandLockup } from "@/components/Brand";
 import { useDashboardCtx } from "./DashboardProvider";
-import { LanguageSelector } from "@/components/site/SiteHeader";
 import { AlertRinger } from "./AlertRinger";
 import {
   IconAlert,
@@ -288,9 +287,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               <Link href="/dashboard/telegram" className="btn btn-sm btn-quiet" aria-label="Telegram">
                 <IconTelegram size={17} />
               </Link>
-            </div>
-            <div className="hidden md:block">
-              <LanguageSelector compact />
             </div>
             <Link href="/dashboard/alerts" className="btn btn-sm btn-ghost hidden sm:inline-flex">
               <IconAlert size={15} /> Alert rules

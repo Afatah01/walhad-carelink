@@ -21,7 +21,7 @@ type Tab = (typeof TAB_KEYS)[number];
 
 export function SettingsView() {
   const { activeId, active } = useDashboardCtx();
-  const { locale, setLocale } = useI18n();
+  useI18n();
   const [tab, setTab] = useState<Tab>("profile");
   const [data, setData] = useState<any>(null);
   const [busy, setBusy] = useState(false);
@@ -124,23 +124,20 @@ export function SettingsView() {
             <h3 className="flex items-center gap-1.5 text-[0.88rem] font-bold text-navy-900">
               <IconGlobe size={15} className="text-brand-600" /> Language
             </h3>
-            <p className="text-[0.74rem] text-muted">English is the default. Your choice is remembered on this device.</p>
+            <p className="text-[0.74rem] text-muted">
+              Walhad CareLink is currently available in English only. Somali and Arabic are not offered yet, so we do
+              not show a switcher that would leave parts of a page untranslated.
+            </p>
             <div className="mt-2 flex flex-wrap gap-2">
-              {[
-                { code: "en", label: "English" },
-                { code: "so", label: "Soomaali" },
-                { code: "ar", label: "العربية" },
-              ].map((l) => (
-                <button
-                  key={l.code}
-                  onClick={() => setLocale(l.code as any)}
-                  className={`rounded-lg border px-3 py-1.5 text-[0.8rem] font-bold transition ${
-                    locale === l.code ? "border-brand-500 bg-brand-500 text-white" : "border-line bg-white text-navy-800"
-                  }`}
-                >
-                  {l.label}
-                </button>
-              ))}
+              <span className="rounded-lg border border-brand-500 bg-brand-500 px-3 py-1.5 text-[0.8rem] font-bold text-white">
+                English
+              </span>
+              <span className="rounded-lg border border-line bg-mist px-3 py-1.5 text-[0.8rem] font-bold text-muted">
+                Soomaali — coming later
+              </span>
+              <span className="rounded-lg border border-line bg-mist px-3 py-1.5 text-[0.8rem] font-bold text-muted">
+                العربية — coming later
+              </span>
             </div>
           </div>
 
