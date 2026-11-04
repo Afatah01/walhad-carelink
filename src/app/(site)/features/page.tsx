@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { PageHero } from "@/components/marketing/PageHero";
-import { CtaBand } from "@/components/marketing/Sections";
+import { PageHeader, CtaBand } from "@/components/site/PageKit";
 import {
   IconAlert,
   IconBell,
@@ -16,32 +15,55 @@ import {
 
 export const metadata: Metadata = {
   title: "Features",
-  description: "Glucose monitoring, real alerts, family sharing and hospital dashboards.",
+  description: "Glucose monitoring, intelligent alerts, family connectivity and hospital management.",
 };
 
-const GROUPS = [
+type Item = { icon: React.ReactNode; label: string; status?: "live" | "planned" };
+
+const GROUPS: { title: string; accent: "teal" | "blue"; items: Item[] }[] = [
   {
-    title: "Monitoring",
+    title: "Glucose Monitoring",
+    accent: "teal",
     items: [
-      { icon: IconDrop, name: "Live glucose", body: "Readings from an authorised Libre source." },
-      { icon: IconMonitor, name: "Charts and history", body: "24-hour and 7-day views, time in range." },
-      { icon: IconAlert, name: "Sensor status", body: "Freshness, stale data and disconnections." },
+      { icon: <IconDrop size={16} />, label: "Live glucose readings" },
+      { icon: <IconMonitor size={16} />, label: "Historical glucose charts" },
+      { icon: <IconMonitor size={16} />, label: "24-hour and 7-day views" },
+      { icon: <IconAlert size={16} />, label: "Time-in-range information" },
+      { icon: <IconDrop size={16} />, label: "Sensor connection status" },
     ],
   },
   {
-    title: "Alerts",
+    title: "Intelligent Alerts",
+    accent: "blue",
     items: [
-      { icon: IconBell, name: "Threshold alerts", body: "Low, high, critical and rapid change." },
-      { icon: IconSms, name: "SMS and push", body: "Delivery status recorded per recipient." },
-      { icon: IconTelegram, name: "Telegram bot", body: "Alerts and acknowledgement in chat." },
+      { icon: <IconBell size={16} />, label: "Low glucose alerts" },
+      { icon: <IconBell size={16} />, label: "High glucose alerts" },
+      { icon: <IconAlert size={16} />, label: "Critical event alerts" },
+      { icon: <IconAlert size={16} />, label: "Rapid-change notifications" },
+      { icon: <IconSms size={16} />, label: "SMS notifications", status: "planned" },
+      { icon: <IconTelegram size={16} />, label: "Telegram notifications" },
+      { icon: <IconMonitor size={16} />, label: "Alert delivery status" },
     ],
   },
   {
-    title: "People and access",
+    title: "Family Connectivity",
+    accent: "teal",
     items: [
-      { icon: IconFamily, name: "Family sharing", body: "Invite caregivers with per-person permissions." },
-      { icon: IconLock, name: "Consent controls", body: "The patient decides who sees what." },
-      { icon: IconStethoscope, name: "Hospital workspace", body: "Staff roles, patient assignment, ward view." },
+      { icon: <IconFamily size={16} />, label: "Family member invitations" },
+      { icon: <IconUsers size={16} />, label: "Caregiver access" },
+      { icon: <IconLock size={16} />, label: "Individual permission management" },
+      { icon: <IconLock size={16} />, label: "Patient-controlled consent" },
+    ],
+  },
+  {
+    title: "Hospital Management",
+    accent: "blue",
+    items: [
+      { icon: <IconStethoscope size={16} />, label: "Multiple patient monitoring" },
+      { icon: <IconUsers size={16} />, label: "Staff accounts and roles" },
+      { icon: <IconStethoscope size={16} />, label: "Patient assignments" },
+      { icon: <IconMonitor size={16} />, label: "Ward monitoring dashboard" },
+      { icon: <IconAlert size={16} />, label: "Monitoring and alert history" },
     ],
   },
 ];
@@ -49,37 +71,55 @@ const GROUPS = [
 export default function FeaturesPage() {
   return (
     <>
-      <PageHero eyebrow="Features" title="What the platform does" body="Nine capabilities, one workspace." />
+      <PageHeader
+        eyebrow="Features"
+        title="Platform capabilities"
+        intro="What Walhad CareLink actually does — grouped into four areas."
+      />
 
-      <section className="shell pb-14">
-        <div className="grid gap-6 md:grid-cols-3">
+      <section className="shell py-14 md:py-20">
+        <div className="grid gap-4 md:grid-cols-2">
           {GROUPS.map((g) => (
-            <div key={g.title}>
-              <h2 className="mb-3 text-[0.7rem] font-bold uppercase tracking-[0.16em] text-muted">{g.title}</h2>
-              <div className="space-y-2.5">
-                {g.items.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <div key={item.name} className="card p-4">
-                      <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand-50 text-brand-600">
-                        <Icon size={16} />
+            <div key={g.title} className="card overflow-hidden">
+              <div className={`h-1 w-full ${g.accent === "teal" ? "bg-teal-500" : "bg-brand-500"}`} />
+              <div className="p-6">
+                <h2 className="text-[1.05rem] font-extrabold tracking-[-0.02em] text-navy-900">{g.title}</h2>
+                <ul className="mt-4 space-y-2.5">
+                  {g.items.map((item) => (
+                    <li key={item.label} className="flex items-center gap-2.5">
+                      <span
+                        className={`grid h-7 w-7 flex-none place-items-center rounded-lg ${
+                          g.accent === "teal" ? "bg-teal-50 text-teal-600" : "bg-brand-50 text-brand-600"
+                        }`}
+                      >
+                        {item.icon}
                       </span>
-                      <p className="mt-2.5 text-[0.88rem] font-extrabold text-navy-900">{item.name}</p>
-                      <p className="mt-0.5 text-[0.78rem] leading-relaxed text-muted">{item.body}</p>
-                    </div>
-                  );
-                })}
+                      <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.86rem] text-navy-800">
+                        {item.label}
+                        {item.status === "planned" ? (
+                          <span className="rounded-full bg-mist px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-wide text-muted">
+                            Needs provider
+                          </span>
+                        ) : null}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           ))}
         </div>
+
+        <p className="mt-6 text-center text-[0.78rem] text-muted">
+          Items marked <span className="font-bold">Needs provider</span> are built but require an SMS gateway to
+          be configured before messages can be delivered.
+        </p>
       </section>
 
       <CtaBand
         title="See it with your own data"
-        body="Create an account and connect a sensor."
         primary={{ label: "Get Started", href: "/signup" }}
-        secondary={{ label: "Pricing", href: "/pricing" }}
+        secondary={{ label: "View Pricing", href: "/pricing" }}
       />
     </>
   );

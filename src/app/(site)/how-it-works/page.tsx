@@ -1,78 +1,77 @@
 import type { Metadata } from "next";
-import { PageHero } from "@/components/marketing/PageHero";
-import { CtaBand } from "@/components/marketing/Sections";
-import { IconBell, IconDrop, IconFamily, IconShield, IconStethoscope, IconUsers } from "@/components/ui/Icons";
+import { PageHeader, CtaBand } from "@/components/site/PageKit";
+import { IconBell, IconCard, IconDrop, IconFamily, IconMonitor, IconSensor } from "@/components/ui/Icons";
 
 export const metadata: Metadata = {
-  title: "How it works",
-  description: "Subscribe, connect a FreeStyle Libre source, and share real readings with your family.",
+  title: "How It Works",
+  description: "Six steps from subscription to continuous glucose monitoring.",
 };
 
 const STEPS = [
-  {
-    icon: IconUsers,
-    title: "Subscribe",
-    body: "Choose Family Basic, Family Premium or a custom Hospital plan. Your workspace is created immediately.",
-  },
-  {
-    icon: IconDrop,
-    title: "Connect your sensor",
-    body: "Link an authorised FreeStyle Libre source from Connection settings. No manual entry.",
-  },
-  {
-    icon: IconBell,
-    title: "Readings arrive",
-    body: "Real glucose data syncs continuously. Old readings are shown as stale, never as current.",
-  },
-  {
-    icon: IconFamily,
-    title: "Invite your circle",
-    body: "Add family and caregivers. They see only what the patient authorises.",
-  },
-  {
-    icon: IconShield,
-    title: "Alerts reach people",
-    body: "Low, high and critical events notify recipients with a delivery record for each channel.",
-  },
-  {
-    icon: IconStethoscope,
-    title: "Clinicians oversee",
-    body: "Hospital staff get an assigned patient list, ward overview and full alert history.",
-  },
+  { icon: <IconCard size={19} />, title: "Subscribe", body: "Choose an appropriate subscription plan." },
+  { icon: <IconSensor size={19} />, title: "Connect Your Sensor", body: "Connect an authorised FreeStyle Libre data source." },
+  { icon: <IconDrop size={19} />, title: "Receive Glucose Readings", body: "Real sensor readings become available through the authorised connection." },
+  { icon: <IconFamily size={19} />, title: "Connect Family Members", body: "Invite authorised family members or caregivers." },
+  { icon: <IconBell size={19} />, title: "Receive Alerts", body: "Get notified when configured glucose thresholds or events are detected." },
+  { icon: <IconMonitor size={19} />, title: "Monitor and Manage", body: "View readings, history, alerts and monitoring information." },
 ];
 
 export default function HowItWorksPage() {
   return (
     <>
-      <PageHero eyebrow="How it works" title="From subscription to real monitoring" body="Six steps, no manual data entry." />
+      <PageHeader
+        eyebrow="How It Works"
+        title="How Walhad CareLink Works"
+        intro="Six steps from subscription to continuous monitoring."
+      />
 
-      <section className="shell pb-14">
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {STEPS.map((s, i) => {
-            const Icon = s.icon;
-            return (
-              <div key={s.title} className="card p-5">
-                <div className="flex items-center gap-2.5">
-                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand-50 text-brand-600">
-                    <Icon size={17} />
-                  </span>
-                  <span className="text-[0.66rem] font-bold uppercase tracking-[0.16em] text-muted">
+      <section className="shell py-14 md:py-20">
+        {/* Desktop: horizontal timeline */}
+        <div className="hidden lg:block">
+          <div className="relative">
+            <div className="absolute left-0 right-0 top-[26px] h-px bg-line" aria-hidden />
+            <div className="relative grid grid-cols-6 gap-4">
+              {STEPS.map((s, i) => (
+                <div key={s.title} className="text-center">
+                  <div className="mx-auto grid h-[54px] w-[54px] place-items-center rounded-2xl border border-line bg-white text-teal-600 shadow-sm">
+                    {s.icon}
+                  </div>
+                  <p className="mt-3 text-[0.66rem] font-bold uppercase tracking-[0.14em] text-teal-600">
                     Step {i + 1}
-                  </span>
+                  </p>
+                  <p className="mt-1 text-[0.9rem] font-bold leading-tight text-navy-900">{s.title}</p>
+                  <p className="mt-1.5 text-[0.8rem] leading-snug text-muted">{s.body}</p>
                 </div>
-                <h2 className="mt-3 text-[0.95rem] font-extrabold text-navy-900">{s.title}</h2>
-                <p className="mt-1 text-[0.8rem] leading-relaxed text-muted">{s.body}</p>
-              </div>
-            );
-          })}
+              ))}
+            </div>
+          </div>
         </div>
+
+        {/* Mobile / tablet: vertical timeline */}
+        <ol className="space-y-1 lg:hidden">
+          {STEPS.map((s, i) => (
+            <li key={s.title} className="relative flex gap-4 pb-7 last:pb-0">
+              {i < STEPS.length - 1 ? (
+                <span className="absolute left-[21px] top-11 h-full w-px bg-line" aria-hidden />
+              ) : null}
+              <span className="grid h-11 w-11 flex-none place-items-center rounded-xl border border-line bg-white text-teal-600 shadow-sm">
+                {s.icon}
+              </span>
+              <div className="pt-0.5">
+                <p className="text-[0.66rem] font-bold uppercase tracking-[0.14em] text-teal-600">Step {i + 1}</p>
+                <p className="mt-0.5 text-[0.95rem] font-bold text-navy-900">{s.title}</p>
+                <p className="mt-1 text-[0.85rem] leading-relaxed text-muted">{s.body}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
       </section>
 
       <CtaBand
-        title="Start today"
-        body="Most families are monitoring within minutes of connecting a sensor."
+        title="Ready to begin?"
+        body="From $30 per month."
         primary={{ label: "Get Started", href: "/signup" }}
-        secondary={{ label: "See pricing", href: "/pricing" }}
+        secondary={{ label: "View Pricing", href: "/pricing" }}
       />
     </>
   );

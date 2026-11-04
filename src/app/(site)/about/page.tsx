@@ -1,49 +1,65 @@
 import type { Metadata } from "next";
-import { PageHero } from "@/components/marketing/PageHero";
-import { CtaBand } from "@/components/marketing/Sections";
-import { brand } from "@/lib/brand";
+import { PageHeader, Section, CtaBand } from "@/components/site/PageKit";
+import { IconDrop, IconLock, IconShield, IconUsers, IconMonitor } from "@/components/ui/Icons";
 
 export const metadata: Metadata = {
-  title: "About",
-  description: "Walhad CareLink connects FreeStyle Libre monitoring with the people who care for you.",
+  title: "About Us",
+  description:
+    "Walhad CareLink is a digital healthcare monitoring platform connecting patients, families and healthcare providers.",
 };
+
+const COMMITMENTS = [
+  { icon: <IconLock size={17} />, label: "Patient privacy" },
+  { icon: <IconShield size={17} />, label: "Secure information management" },
+  { icon: <IconDrop size={17} />, label: "Real sensor data" },
+  { icon: <IconMonitor size={17} />, label: "Responsible monitoring" },
+  { icon: <IconUsers size={17} />, label: "Accessible digital healthcare" },
+];
 
 export default function AboutPage() {
   return (
     <>
-      <PageHero eyebrow="About" title="Built for families in the Horn of Africa" />
+      <PageHeader
+        eyebrow="About Us"
+        title="About Walhad CareLink"
+        intro="Walhad CareLink is a digital healthcare monitoring platform designed to connect patients, families and healthcare providers through accessible glucose monitoring technology."
+      />
 
-      <section className="shell max-w-3xl pb-14">
-        <div className="space-y-4 text-[0.98rem] leading-relaxed text-navy-800/90">
-          <p>
-            {brand.suite} connects FreeStyle Libre sensors to the people who care for a patient, so a low at 3am
-            reaches someone who can act.
-          </p>
-          <p>
-            Every reading on the platform came from a real sensor. We never show simulated or sample data as if it
-            were a patient&apos;s own.
-          </p>
+      <Section>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="card p-6 md:p-8">
+            <p className="text-[0.68rem] font-bold uppercase tracking-[0.16em] text-teal-600">Our Mission</p>
+            <p className="mt-3 text-[1.05rem] leading-relaxed text-navy-800">
+              Make glucose monitoring more accessible and help families remain informed and connected.
+            </p>
+          </div>
+          <div className="card p-6 md:p-8">
+            <p className="text-[0.68rem] font-bold uppercase tracking-[0.16em] text-brand-600">Our Vision</p>
+            <p className="mt-3 text-[1.05rem] leading-relaxed text-navy-800">
+              Build a trusted digital healthcare ecosystem that supports connected care and better-informed
+              families.
+            </p>
+          </div>
         </div>
+      </Section>
 
-        <div className="mt-8 grid gap-3 sm:grid-cols-3">
-          {[
-            { k: "Real data only", v: "No simulated readings" },
-            { k: "Consent first", v: "Patients control access" },
-            { k: "Built for Somalia", v: "Time zones, SMS, Telegram" },
-          ].map((c) => (
-            <div key={c.k} className="card p-4">
-              <p className="text-[0.86rem] font-extrabold text-navy-900">{c.k}</p>
-              <p className="mt-0.5 text-[0.76rem] text-muted">{c.v}</p>
+      <Section tone="mist" title="Our Commitment">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {COMMITMENTS.map((c) => (
+            <div key={c.label} className="flex items-center gap-3 rounded-xl border border-line bg-white px-4 py-3.5">
+              <span className="grid h-9 w-9 flex-none place-items-center rounded-lg bg-teal-50 text-teal-600">
+                {c.icon}
+              </span>
+              <p className="text-[0.88rem] font-semibold text-navy-900">{c.label}</p>
             </div>
           ))}
         </div>
-      </section>
+      </Section>
 
       <CtaBand
-        title="Questions?"
-        body="We answer every message."
-        primary={{ label: "Contact us", href: "/contact" }}
-        secondary={{ label: "See pricing", href: "/pricing" }}
+        title="Questions about how we work?"
+        primary={{ label: "Contact Us", href: "/contact" }}
+        secondary={{ label: "Our Products", href: "/products" }}
       />
     </>
   );

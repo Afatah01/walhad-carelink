@@ -1,78 +1,68 @@
-"use client";
-
 import Link from "next/link";
 import { BrandLockup } from "@/components/Brand";
-import { IconTelegram, IconSms, IconShield, IconDrop } from "@/components/ui/Icons";
-import { useI18n } from "@/components/i18n/I18nProvider";
+import { brand } from "@/lib/brand";
+import type { SiteContact } from "@/lib/site-config";
 
-export function SiteFooter({ contact }: { contact?: { email?: string | null; phone?: string | null; address?: string | null } }) {
-  const { t } = useI18n();
-  const year = new Date().getFullYear();
+const COLUMNS = [
+  {
+    title: "Product",
+    links: [
+      { label: "Features", href: "/features" },
+      { label: "Our Products", href: "/products" },
+      { label: "How It Works", href: "/how-it-works" },
+      { label: "Pricing", href: "/pricing" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { label: "About Us", href: "/about" },
+      { label: "Contact Us", href: "/contact" },
+    ],
+  },
+  {
+    title: "Support",
+    links: [
+      { label: "FAQ", href: "/faq" },
+      { label: "Technical Support", href: "/contact?topic=technical" },
+      { label: "Privacy & Safety", href: "/legal/privacy" },
+      { label: "Terms of Service", href: "/legal/terms" },
+    ],
+  },
+];
 
-  const columns = [
-    {
-      title: t("footer.product"),
-      links: [
-        { label: t("nav.features"), href: "/features" },
-        { label: t("nav.how"), href: "/how-it-works" },
-        { label: t("nav.products"), href: "/products" },
-        { label: t("nav.pricing"), href: "/pricing" },
-      ],
-    },
-    {
-      title: t("footer.company"),
-      links: [
-        { label: t("nav.about"), href: "/about" },
-        { label: t("nav.contact"), href: "/contact" },
-        { label: t("footer.demo"), href: "/login" },
-      ],
-    },
-    {
-      title: t("footer.support"),
-      links: [
-        { label: "FAQ", href: "/faq" },
-        { label: "Hospital onboarding", href: "/contact?topic=hospital" },
-        { label: "Technical support", href: "/contact?topic=technical" },
-        { label: "Privacy & safety", href: "/legal/privacy" },
-        { label: "Terms of service", href: "/legal/terms" },
-      ],
-    },
-  ];
+export function SiteFooter({ contact }: { contact: SiteContact }) {
+  const hasContact = Boolean(contact.email || contact.phone || contact.address);
 
   return (
-    <footer className="relative mt-auto border-t border-line bg-[#f7fafc]">
-      <div className="shell py-14">
-        <div className="grid gap-10 lg:grid-cols-[1.4fr_repeat(3,1fr)]">
+    <footer className="border-t border-line bg-white">
+      <div className="shell py-12">
+        <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(3,0.8fr)]">
           <div>
-            <BrandLockup logoSize={46} showTagline />
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted">
-              Helping families stay connected, informed, and prepared through intelligent glucose monitoring
-              technology.
+            <BrandLockup logoSize={46} size="md" />
+            <p className="mt-4 max-w-xs text-[0.85rem] leading-relaxed text-muted">
+              Connected glucose monitoring for families and healthcare teams.
             </p>
-            <div className="mt-5 flex flex-wrap gap-2">
-              <span className="pill pill-teal">
-                <IconTelegram size={13} /> Telegram Bot
-              </span>
-              <span className="pill pill-brand">
-                <IconSms size={13} /> SMS alerts
-              </span>
-              <span className="pill pill-muted">
-                <IconDrop size={13} /> FreeStyle Libre
-              </span>
-            </div>
+            {hasContact ? (
+              <div className="mt-4 space-y-1 text-[0.82rem] text-muted">
+                {contact.email ? <p>{contact.email}</p> : null}
+                {contact.phone ? <p>{contact.phone}</p> : null}
+                {contact.address ? <p>{contact.address}</p> : null}
+              </div>
+            ) : null}
           </div>
 
-          {columns.map((col) => (
+          {COLUMNS.map((col) => (
             <div key={col.title}>
-              <h3 className="text-[0.72rem] font-bold uppercase tracking-[0.14em] text-navy-900">{col.title}</h3>
-              <ul className="mt-3 space-y-2.5">
-                {col.links.map((link) => (
-                  <li key={link.href + link.label}>
+              <h2 className="text-[0.7rem] font-bold uppercase tracking-[0.16em] text-navy-900">{col.title}</h2>
+              <ul className="mt-3.5 space-y-2.5">
+                {col.links.map((l) => (
+                  <li key={l.href + l.label}>
                     <Link
-                      href={link.href}
-                      className="link-underline text-sm text-muted transition-colors hover:text-brand-700"
+                      href={l.href}
+                      className="text-[0.85rem] text-muted transition-colors hover:text-teal-600"
                     >
-                      {link.label}
+                      {l.label}
                     </Link>
                   </li>
                 ))}
@@ -81,45 +71,29 @@ export function SiteFooter({ contact }: { contact?: { email?: string | null; pho
           ))}
         </div>
 
-        <div className="mt-12 rounded-2xl border border-line bg-white p-5">
-          <div className="flex items-start gap-3">
-            <span className="mt-0.5 grid h-8 w-8 flex-none place-items-center rounded-lg bg-teal-50 text-teal-700">
-              <IconShield size={16} />
-            </span>
-            <p className="text-[0.78rem] leading-relaxed text-muted">{t("footer.notice")}</p>
-          </div>
-        </div>
-
-        <div className="mt-8 flex flex-col gap-4 border-t border-line pt-6 text-xs text-muted md:flex-row md:items-center md:justify-between">
-          <p>
-            © {year} Walhad CareLink. {t("footer.rights")}
+        <div className="mt-10 border-t border-line pt-6">
+          <p className="text-[0.72rem] leading-relaxed text-muted/90">
+            Walhad CareLink supports monitoring and does not replace professional medical care or emergency
+            services. Always follow the advice of your clinician.
           </p>
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            {contact?.email ? (
-              <a href={`mailto:${contact.email}`} className="link-underline hover:text-brand-700">
-                {contact.email}
-              </a>
-            ) : null}
-            {contact?.phone ? (
-              <a href={`tel:${contact.phone}`} className="link-underline hover:text-brand-700">
-                {contact.phone}
-              </a>
-            ) : null}
-            {contact?.address ? <span>{contact.address}</span> : null}
-            <Link href="/legal/privacy" className="link-underline hover:text-brand-700">
-              Privacy
-            </Link>
-            <Link href="/legal/terms" className="link-underline hover:text-brand-700">
-              Terms
-            </Link>
+          <p className="mt-1.5 text-[0.72rem] leading-relaxed text-muted/90">
+            FreeStyle, FreeStyle Libre and LibreLink are trademarks of Abbott. Walhad CareLink is not affiliated
+            with, endorsed by or sponsored by Abbott.
+          </p>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-[0.75rem] text-muted">
+            <p>
+              © {new Date().getFullYear()} {brand.suite}
+            </p>
+            <div className="flex gap-4">
+              <Link href="/legal/privacy" className="hover:text-teal-600">
+                Privacy
+              </Link>
+              <Link href="/legal/terms" className="hover:text-teal-600">
+                Terms
+              </Link>
+            </div>
           </div>
         </div>
-
-        <p className="mt-5 text-[0.7rem] leading-relaxed text-muted/80">
-          FreeStyle Libre is a trademark of Abbott. Walhad CareLink is an independent platform and is not
-          affiliated with, endorsed by, or sponsored by Abbott. Access to Libre cloud data requires official
-          partner approval where applicable.
-        </p>
       </div>
     </footer>
   );

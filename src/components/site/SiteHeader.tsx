@@ -99,27 +99,25 @@ export function SiteHeader({ signedIn = false }: { signedIn?: boolean }) {
       <header
         className={`sticky top-0 z-50 border-b transition-all duration-300 ${
           scrolled
-            ? "border-line/90 bg-white/92 shadow-[0_6px_24px_-18px_rgba(0,47,101,0.5)] backdrop-blur-xl"
-            : "border-transparent bg-white/75 backdrop-blur-md"
+            ? "border-line bg-white/95 shadow-[0_4px_20px_-16px_rgba(13,43,49,0.4)] backdrop-blur-xl"
+            : "border-line/70 bg-white/85 backdrop-blur-md"
         }`}
       >
-        <div className="shell flex h-[88px] items-center justify-between gap-4">
-          <BrandLockup priority logoSize={60} size="xl" />
+        <div className="shell flex h-[80px] items-center justify-between gap-4">
+          <BrandLockup priority logoSize={54} size="xl" />
 
           <nav className="hidden items-center gap-x-0.5 lg:flex" aria-label="Primary">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`relative whitespace-nowrap rounded-full px-2.5 py-2 text-[0.82rem] font-semibold transition-colors ${
-                  isActive(link.href)
-                    ? "text-brand-700"
-                    : "text-navy-800/80 hover:text-brand-700"
+                className={`relative whitespace-nowrap rounded-lg px-3 py-2 text-[0.84rem] font-semibold transition-colors ${
+                  isActive(link.href) ? "text-teal-700" : "text-navy-900/70 hover:text-teal-700"
                 }`}
               >
                 {t(link.key)}
                 {isActive(link.href) ? (
-                  <span className="absolute inset-x-3 -bottom-0.5 h-[2px] rounded-full bg-gradient-to-r from-teal-500 to-brand-500" />
+                  <span className="absolute inset-x-3 bottom-0 h-[2px] rounded-full bg-teal-500" />
                 ) : null}
               </Link>
             ))}
@@ -131,7 +129,7 @@ export function SiteHeader({ signedIn = false }: { signedIn?: boolean }) {
             </div>
             <Link
               href={signedIn ? "/dashboard" : "/login"}
-              className="btn btn-sm btn-ghost hidden sm:inline-flex"
+              className="btn btn-sm btn-quiet hidden sm:inline-flex"
             >
               {signedIn ? t("nav.dashboard") : t("nav.signIn")}
             </Link>
