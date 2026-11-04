@@ -38,10 +38,15 @@ export async function ingestReadings(
 ): Promise<number> {
   if (!readings.length) return 0;
   const d = db();
+  const nowMs = Date.now();
+  const MAX_FUTURE_MS = 90_000;
   let inserted = 0;
   await d.tx(async (t) => {
     for (const r of readings) {
       if (!Number.isFinite(r.value) || r.value <= 0) continue;
+      // A glucose reading cannot arrive from the future. Reject clock-skewed or
+      // corrupt timestamps rather than storing them and showing "in 3 hours".
+      if (!Number.isFinite(r.takenAt) || r.takenAt > nowMs + MAX_FUTURE_MS) continue;
       const takenAt = new Date(r.takenAt).toISOString();
       try {
         await t.run(

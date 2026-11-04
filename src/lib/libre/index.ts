@@ -63,8 +63,13 @@ export async function syncPatient(
   lookbackHours = 24,
 ): Promise<SyncOutcome> {
   const provider = providerFor(patient.provider);
-  if (provider.key === "bridge") {
-    return { ok: true, ingested: 0, snapshot: null };
+  if (!provider.enabled()) {
+    return {
+      ok: false,
+      ingested: 0,
+      snapshot: null,
+      error: { code: "not_configured", message: provider.description, retryable: false },
+    };
   }
   try {
     const snapshot = await provider.fetchSnapshot({
@@ -140,7 +145,9 @@ export async function syncPatient(
 
 /** Patients that should be polled by the scheduled sync job. */
 export async function syncablePatients(): Promise<PatientRow[]> {
+  // Every patient with a real provider is polled. `none` means the record was
+  // never connected, so there is nothing to fetch.
   return db().query<PatientRow>(
-    "SELECT * FROM patients WHERE status = 'active' AND provider <> 'bridge' ORDER BY id ASC",
+    "SELECT * FROM patients WHERE status = 'active' AND provider <> 'none' AND provider IS NOT NULL ORDER BY id ASC",
   );
 }

@@ -1,4 +1,10 @@
-import { ProviderError, type LibreProvider, type NormalizedReading, type ProviderSnapshot } from "./types";
+import {
+  ProviderError,
+  type LibreProvider,
+  type NormalizedReading,
+  type ProviderContext,
+  type ProviderSnapshot,
+} from "./types";
 
 /**
  * LibreView / Libre Data Sharing provider (official partner route).
@@ -242,22 +248,183 @@ export const linkupProvider: LibreProvider = {
  * application exposes `/api/data` for exactly this pattern, so we keep that
  * contract alive and accept it through a per-patient bridge key.
  */
+/**
+ * Secure phone bridge.
+ *
+ * Supports both directions:
+ *
+ *   PULL — a running bridge (for example the existing Walhad glucose monitor)
+ *          exposes a JSON snapshot at its base URL. We poll it and store what
+ *          it reports. This is how the current live deployment already works,
+ *          so no change to the household phone setup is required.
+ *   PUSH — a new bridge can POST to /api/bridge/ingest with a per-patient key.
+ *
+ * Both paths end in the same ingestion code, so readings, alerts and
+ * notifications behave identically. Nothing is synthesised: a bridge that is
+ * offline raises `network`, and a bridge that reports no reading leaves the
+ * last true reading in place (the UI then shows it as stale).
+ */
+
+interface BridgePayload {
+  glucose?: number | null;
+  reading_time?: string | null;
+  readingTime?: string | null;
+  trend?: string | number | null;
+  history?: { t: number; v: number }[];
+  battery?: number | null;
+  sensor_connected?: boolean | null;
+  sensorConnected?: boolean | null;
+  phone_online?: boolean | null;
+  bridge_age?: number | null;
+  server_time?: string | null;
+  low?: number | null;
+  high?: number | null;
+}
+
+function bridgeEndpoint(ctx: ProviderContext): string {
+  // The patient's provider_patient_id holds the bridge base URL; the credential
+  // holds an optional bearer token for bridges that require one.
+  const raw = (ctx.patient.provider_patient_id ?? "").trim();
+  if (!raw) {
+    throw new ProviderError("invalid_patient", "No bridge URL is configured for this patient.");
+  }
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    throw new ProviderError("invalid_patient", `Bridge URL is not valid: ${raw}`);
+  }
+  if (url.protocol !== "https:" && url.hostname !== "localhost" && url.hostname !== "127.0.0.1") {
+    throw new ProviderError("invalid_patient", "Bridge URL must use https.");
+  }
+  if (!url.pathname || url.pathname === "/") url.pathname = "/api/data";
+  return url.toString();
+}
+
+function toTrend(value: unknown): string | number | undefined {
+  if (value === null || value === undefined) return undefined;
+  const n = Number(value);
+  // The legacy bridge reports Abbott's 1..5 trend index.
+  if (Number.isFinite(n) && n >= 1 && n <= 5) return n;
+  return typeof value === "string" ? value : undefined;
+}
+
 export const bridgeProvider: LibreProvider = {
   key: "bridge",
   label: "Secure phone bridge",
   description:
-    "Accepts readings pushed from a phone running the existing bridge software, authenticated with a per-patient bridge key.",
+    "Polls a LibreLinkUp bridge running on the household phone. Supports push to /api/bridge/ingest as well.",
   requiresCredentials: true,
   enabled: () => true,
   async fetchSnapshot(ctx): Promise<ProviderSnapshot> {
-    // Bridge providers are push-first: readings arrive through /api/bridge/ingest.
-    // Nothing to pull, so we simply report the locally stored freshness.
-    return {
-      readings: [],
-      sensor: null,
-      fetchedAt: Date.now(),
-      connected: true,
-      note: "Push provider — readings arrive from the paired bridge device.",
-    };
+    const endpoint = bridgeEndpoint(ctx);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15_000);
+    try {
+      const res = await fetch(endpoint, {
+        headers: {
+          accept: "application/json",
+          ...(ctx.credential ? { authorization: `Bearer ${ctx.credential}` } : {}),
+        },
+        signal: controller.signal,
+        cache: "no-store",
+      });
+
+      if (res.status === 401 || res.status === 403) {
+        throw new ProviderError("unauthorized", `Bridge rejected the credentials (${res.status}).`);
+      }
+      if (!res.ok) {
+        throw new ProviderError("provider_error", `Bridge responded ${res.status}.`, res.status >= 500);
+      }
+
+      const body = (await res.json()) as BridgePayload;
+      const now = Date.now();
+      const lookbackMs = (ctx.lookbackHours ?? 24) * 3_600_000;
+      const readings: NormalizedReading[] = [];
+      const seen = new Set<number>();
+
+      const push = (value: unknown, when: unknown, trend?: unknown) => {
+        const v = Number(value);
+        if (!Number.isFinite(v) || v < 20 || v > 600 || !when) return;
+        const ms = typeof when === "number" ? (when < 1e12 ? when * 1000 : when) : Date.parse(String(when));
+        if (!Number.isFinite(ms) || seen.has(ms)) return;
+        seen.add(ms);
+        readings.push({ value: v, takenAt: ms, trend: toTrend(trend) as any, source: "bridge" });
+      };
+
+      // The legacy bridge's history[] timestamps are offset from its own
+      // reading_time (observed ~3h ahead), and a reading dated in the future is
+      // a lie. Anchor the series on the newest history point and shift the whole
+      // series so the newest sample lands exactly on reading_time, preserving
+      // the true spacing between readings.
+      const historyPoints = (body.history ?? [])
+        .map((p) => ({ v: Number(p.v), t: Number(p.t) }))
+        .filter((p) => Number.isFinite(p.v) && p.v >= 20 && p.v <= 600 && Number.isFinite(p.t));
+
+      const authoritative = body.reading_time ?? body.readingTime;
+      const anchorMs = authoritative ? Date.parse(String(authoritative)) : NaN;
+      const maxHistoryT = historyPoints.reduce((m, p) => Math.max(m, p.t), 0);
+      const newestHistoryMs = maxHistoryT > 0 ? (maxHistoryT < 1e12 ? maxHistoryT * 1000 : maxHistoryT) : NaN;
+      const skew =
+        Number.isFinite(anchorMs) && Number.isFinite(newestHistoryMs) ? newestHistoryMs - anchorMs : 0;
+
+      for (const point of historyPoints) {
+        const ms = point.t < 1e12 ? point.t * 1000 : point.t;
+        push(point.v, ms - skew);
+      }
+      push(body.glucose, authoritative, body.trend);
+
+      const FUTURE_TOLERANCE_MS = 90_000; // allow slight clock drift, not hours
+      const fresh = readings
+        .filter((r) => r.takenAt >= now - lookbackMs && r.takenAt <= now + FUTURE_TOLERANCE_MS)
+        .sort((a, b) => a.takenAt - b.takenAt);
+
+      const sensorConnected = body.sensor_connected ?? body.sensorConnected ?? null;
+      const phoneOnline = body.phone_online ?? true;
+
+      // A bridge that is reachable but whose phone/sensor is offline is not a
+      // healthy connection — say so instead of reporting a green light.
+      if (phoneOnline === false || sensorConnected === false) {
+        return {
+          readings: fresh,
+          sensor: {
+            serial: null,
+            startedAt: null,
+            wearDays: null,
+            active: sensorConnected === true ? true : false,
+            expiresAt: null,
+          },
+          fetchedAt: now,
+          connected: false,
+          note: phoneOnline === false ? "Bridge reports the phone is offline." : "Sensor is disconnected.",
+        };
+      }
+
+      return {
+        readings: fresh,
+        sensor: {
+          serial: null,
+          startedAt: null,
+          wearDays: null,
+          active: sensorConnected,
+          expiresAt: null,
+        },
+        fetchedAt: now,
+        connected: true,
+        note: body.bridge_age !== undefined ? `Bridge last spoke ${Math.round(Number(body.bridge_age))}s ago.` : undefined,
+      };
+    } catch (err) {
+      if (err instanceof ProviderError) throw err;
+      if (err instanceof Error && err.name === "AbortError") {
+        throw new ProviderError("network", "Bridge did not answer within 15 seconds.", true);
+      }
+      throw new ProviderError(
+        "network",
+        `Could not reach the bridge: ${err instanceof Error ? err.message : "unknown error"}`,
+        true,
+      );
+    } finally {
+      clearTimeout(timer);
+    }
   },
 };

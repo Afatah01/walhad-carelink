@@ -181,26 +181,7 @@ export function AdminPanels(props: {
           </section>
         ) : null}
 
-        {tab === "Organisations" ? (
-          <section className="card overflow-hidden">
-            <div className="border-b border-line px-4 py-3">
-              <h2 className="text-[0.92rem] font-extrabold text-navy-900">Organisations</h2>
-            </div>
-            <ul className="divide-y divide-line">
-              {props.orgs.map((o) => (
-                <li key={o.id} className="flex items-center justify-between px-4 py-3">
-                  <div>
-                    <p className="text-[0.84rem] font-bold text-navy-900">{o.name}</p>
-                    <p className="text-[0.68rem] capitalize text-muted">{o.type} organisation</p>
-                  </div>
-                  <span className="text-[0.78rem] font-bold text-navy-900">
-                    {o.patients} <span className="text-[0.66rem] font-semibold text-muted">patients</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
+        {tab === "Organisations" ? <OrganisationsPanel notify={notify} /> : null}
 
         {tab === "Staff" ? (
           <section className="card overflow-hidden">
@@ -529,5 +510,172 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
       {children}
       {hint ? <span className="mt-1 block text-[0.68rem] text-muted">{hint}</span> : null}
     </label>
+  );
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Organisations — hospitals and clinics with real staff and patients. */
+/* ------------------------------------------------------------------ */
+
+type OrgDto = {
+  id: number;
+  name: string;
+  type: string;
+  country: string | null;
+  patients: number;
+  staff: number;
+  connected: number;
+  createdAt: string;
+};
+
+function OrganisationsPanel({ notify }: { notify: (m: string) => void }) {
+  const [orgs, setOrgs] = useState<OrgDto[] | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [made, setMade] = useState<{ name: string; email: string; password: string } | null>(null);
+  const [form, setForm] = useState({
+    name: "",
+    type: "hospital" as "hospital" | "family",
+    country: "Somalia",
+    contactEmail: "",
+    contactPhone: "",
+    address: "",
+    adminEmail: "",
+    adminName: "",
+    adminPassword: "",
+  });
+
+  const load = useCallback(async () => {
+    const res = await fetch("/api/orgs", { cache: "no-store" });
+    const json = await res.json();
+    if (json.ok) setOrgs(json.orgs);
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    const res = await fetch("/api/orgs", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(form),
+    });
+    const json = await res.json();
+    setBusy(false);
+    if (!json.ok) {
+      notify(json.error ?? "Could not create the organisation.");
+      return;
+    }
+    notify(`${json.org.name} created.`);
+    if (json.staff) setMade({ name: json.org.name, email: json.staff.email, password: json.staff.password });
+    setForm({ ...form, name: "", contactEmail: "", adminEmail: "", adminName: "", adminPassword: "" });
+    void load();
+  }
+
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+    setForm({ ...form, [k]: e.target.value });
+
+  return (
+    <>
+      <section className="card overflow-hidden">
+        <div className="border-b border-line px-4 py-3">
+          <h2 className="text-[0.92rem] font-extrabold text-navy-900">Organisations</h2>
+          <p className="mt-0.5 text-[0.72rem] font-semibold text-muted">
+            Counts come from live patient and staff records.
+          </p>
+        </div>
+        {orgs === null ? (
+          <div className="space-y-2 p-4">
+            <div className="skeleton h-4 w-1/3 rounded" />
+            <div className="skeleton h-4 w-1/2 rounded" />
+          </div>
+        ) : orgs.length === 0 ? (
+          <p className="px-4 py-6 text-center text-[0.84rem] font-semibold text-muted">
+            No organisations yet. Create the first hospital below.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="tbl min-w-[680px]">
+              <thead>
+                <tr>
+                  <th>Organisation</th>
+                  <th>Type</th>
+                  <th>Patients</th>
+                  <th>Monitoring</th>
+                  <th>Staff</th>
+                  <th>Country</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orgs.map((o) => (
+                  <tr key={o.id}>
+                    <td className="text-[0.84rem] font-bold text-navy-900">{o.name}</td>
+                    <td className="text-[0.78rem] capitalize text-muted">{o.type}</td>
+                    <td className="tabular text-[0.8rem] text-muted">{o.patients}</td>
+                    <td className="tabular text-[0.8rem] text-muted">{o.connected}</td>
+                    <td className="tabular text-[0.8rem] text-muted">{o.staff}</td>
+                    <td className="text-[0.78rem] text-muted">{o.country ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <form onSubmit={submit} className="card overflow-hidden">
+        <div className="border-b border-line px-4 py-3">
+          <h2 className="text-[0.92rem] font-extrabold text-navy-900">Register a hospital</h2>
+        </div>
+        <div className="grid gap-3 p-4 sm:grid-cols-2">
+          <Field label="Hospital name">
+            <input required value={form.name} onChange={set("name")} className="input" placeholder="e.g. Hargeisa General Hospital" />
+          </Field>
+          <Field label="Type">
+            <select value={form.type} onChange={set("type")} className="input">
+              <option value="hospital">Hospital / clinic</option>
+              <option value="family">Family workspace</option>
+            </select>
+          </Field>
+          <Field label="Country">
+            <input value={form.country} onChange={set("country")} className="input" />
+          </Field>
+          <Field label="Contact email">
+            <input type="email" value={form.contactEmail} onChange={set("contactEmail")} className="input" />
+          </Field>
+          <Field label="Phone">
+            <input value={form.contactPhone} onChange={set("contactPhone")} className="input" placeholder="+252 …" />
+          </Field>
+          <Field label="Address">
+            <input value={form.address} onChange={set("address")} className="input" />
+          </Field>
+          <Field label="Clinical lead email" hint="Gets a doctor account scoped to this hospital.">
+            <input type="email" value={form.adminEmail} onChange={set("adminEmail")} className="input" placeholder="doctor@hospital.so" />
+          </Field>
+          <Field label="Clinical lead name">
+            <input value={form.adminName} onChange={set("adminName")} className="input" />
+          </Field>
+          <Field label="Temporary password" hint="Leave blank to generate a strong one.">
+            <input value={form.adminPassword} onChange={set("adminPassword")} className="input" />
+          </Field>
+          <div className="flex items-end">
+            <button type="submit" disabled={busy} className="btn btn-primary w-full">
+              {busy ? "Registering…" : "Register hospital"}
+            </button>
+          </div>
+        </div>
+        {made ? (
+          <div className="border-t border-line bg-[#f4faff] px-4 py-3">
+            <p className="text-[0.78rem] font-bold text-navy-800">{made.name} staff login created</p>
+            <p className="mt-1 font-mono text-[0.76rem] text-navy-900">{made.email}</p>
+            <p className="font-mono text-[0.76rem] text-navy-900">{made.password}</p>
+            <p className="mt-1 text-[0.7rem] text-muted">Share once — the password is not shown again.</p>
+          </div>
+        ) : null}
+      </form>
+    </>
   );
 }

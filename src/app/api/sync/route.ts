@@ -27,10 +27,6 @@ export const POST = route(async ({ req, user }) => {
   const patient = await getPatient(parsed.data.patientId);
   if (!patient) return fail("Patient not found", 404);
 
-  if (patient.provider === "bridge") {
-    return json({ ok: true, ingested: 0, provider: "bridge", message: "Bridge patients push readings automatically." });
-  }
-
   const credential = open(patient.credential_cipher);
   const outcome = await syncPatient(patient, credential, 24);
 
