@@ -115,9 +115,9 @@ export function LoginForm({ accounts, showDemo }: { accounts: DemoAccount[]; sho
         </div>
 
         <p className="mt-5 text-center text-[0.8rem] text-muted">
-          Need an account? Account creation is handled by your care provider.{" "}
-          <Link href="/contact" className="font-bold text-brand-700 link-underline">
-            Contact support
+          New patient?{" "}
+          <Link href="/signup" className="font-bold text-brand-700 link-underline">
+            Create an account
           </Link>
         </p>
       </div>

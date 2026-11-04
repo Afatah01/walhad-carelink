@@ -135,7 +135,7 @@ export function SiteHeader({ signedIn = false }: { signedIn?: boolean }) {
             >
               {signedIn ? t("nav.dashboard") : t("nav.signIn")}
             </Link>
-            <Link href="/pricing" className="btn btn-primary btn-sm hidden md:inline-flex">
+            <Link href="/signup" className="btn btn-primary btn-sm hidden md:inline-flex">
               {t("nav.getStarted")}
               <IconArrow size={15} />
             </Link>
@@ -205,7 +205,7 @@ export function SiteHeader({ signedIn = false }: { signedIn?: boolean }) {
             <Link href={signedIn ? "/dashboard" : "/login"} className="btn btn-ghost w-full">
               {signedIn ? t("nav.dashboard") : t("nav.signIn")}
             </Link>
-            <Link href="/pricing" className="btn btn-primary w-full">
+            <Link href="/signup" className="btn btn-primary w-full">
               {t("nav.getStarted")}
               <IconArrow size={16} />
             </Link>

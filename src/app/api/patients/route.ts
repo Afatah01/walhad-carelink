@@ -157,3 +157,50 @@ export async function GET() {
     return NextResponse.json({ ok: false, error: "Could not list patients." }, { status: 500 });
   }
 }
+
+/**
+ * Archive a patient record.
+ *
+ * Medical rows are never hard-deleted by an ordinary action: the record is
+ * marked `archived`, its monitoring connection is cleared so nothing more is
+ * pulled, and the audit trail keeps who archived it and when.
+ */
+export async function DELETE(req: Request) {
+  try {
+    const user = await requireUser();
+    if (user.role !== "admin") {
+      return NextResponse.json({ ok: false, error: "Administrator access required." }, { status: 403 });
+    }
+    const id = Number(new URL(req.url).searchParams.get("id"));
+    if (!Number.isInteger(id) || id <= 0) {
+      return NextResponse.json({ ok: false, error: "A valid patient id is required." }, { status: 422 });
+    }
+    const patient = await db().get<any>("SELECT id, display_name, org_id FROM patients WHERE id = ?", [id]);
+    if (!patient) return NextResponse.json({ ok: false, error: "Patient not found." }, { status: 404 });
+
+    await db().run(
+      `UPDATE patients
+         SET status = 'archived', provider = 'none', provider_patient_id = NULL,
+             credential_cipher = NULL, bridge_key_hash = NULL
+       WHERE id = ?`,
+      [id],
+    );
+    await db().run("DELETE FROM patient_members WHERE patient_id = ?", [id]);
+    await db().run("DELETE FROM clinician_assignments WHERE patient_id = ?", [id]);
+
+    const { audit } = await import("@/lib/db/repo");
+    await audit({
+      actorId: user.id,
+      actorLabel: user.email,
+      action: "patient.archive",
+      entity: "patients",
+      entityId: id,
+      meta: { displayName: patient.display_name },
+    });
+
+    return NextResponse.json({ ok: true, archived: id });
+  } catch (err) {
+    if (err instanceof AuthError) return NextResponse.json({ ok: false, error: err.message }, { status: err.status });
+    return NextResponse.json({ ok: false, error: "Could not archive the record." }, { status: 500 });
+  }
+}

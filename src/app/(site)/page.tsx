@@ -224,7 +224,7 @@ export default async function HomePage() {
       <CtaBand
         title="Ready to keep your family connected?"
         body="Start with Family Basic today, or talk to us about hospital-wide monitoring. Every plan includes Telegram alerts, glucose history and a real family notification centre."
-        primary={{ label: "Get Started", href: "/pricing" }}
+        primary={{ label: "Get Started", href: "/signup" }}
         secondary={{ label: "Talk to our team", href: "/contact" }}
       />
     </>
